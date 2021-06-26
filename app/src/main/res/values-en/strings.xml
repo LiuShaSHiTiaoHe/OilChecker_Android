@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OilChecker</string>
+    <string name="home">Home</string>
+    <string name="statistic">Statistics</string>
+    <string name="statistical">Statistical</string>
+    <string name="setting">Setting</string>
+    <string name="car_num">car num</string>
+    <string name="add_device">Add A Device</string>
+    <string name="normal">Normal</string>
+    <string name="sync">Sync</string>
+    <string name="unknown">Unknown</string>
+    <string name="exception">Irregular</string>
+    <string name="oil_state">Fuel Capacity Status</string>
+    <string name="average_fuel">Average Consumption</string>
+    <string name="day">Day</string>
+    <string name="week">Week</string>
+    <string name="month">Month</string>
+    <string name="quarter">Quarter</string>
+    <string name="year">Year</string>
+    <string name="fuel">Fuel</string>
+    <string name="current_oil">Current Fuel</string>
+    <string name="ble_device">Ble Devices</string>
+    <string name="identify">Device Identify</string>
+    <string name="length">Length</string>
+    <string name="width">Width</string>
+    <string name="height">Height</string>
+    <string name="comparison_voltage">Compare Voltage</string>
+    <string name="save">Save</string>
+    <string name="Edit">Edit</string>
+    <string name="Confirm">Confirm</string>
+    <string name="Tips">Tips</string>
+    <string name="Cancle">Cancle</string>
+    <string name="ChangeDeviceInfoTips">Change device infomation will lead to deviation of the collected data, Sure to modify?</string>
+    <string name="select">Select a Car</string>
+    <string name="fuel_record">Consumption Record</string>
+    <string name="refuel_record">Refuel Record</string>
+
+    //Setting
+    <string name="fault_list">Equipment Malfunction Record</string>
+    <string name="fault_record">Malfuntion</string>
+    <string name="search">Search Device</string>
+    <string name="device_list">Device List</string>
+    <string name="add">Add</string>
+
+    <string name="ble_not_available">Bluetooth is not available</string>
+    <string name="open_ble">Enable bluetooth and try again</string>
+    <string name="location_permission_missing">On Android 6.0 location permission is required</string>
+    <string name="location_disabled">Location services needs to be enabled on Android 6.0</string>
+    <string name="notify_set_up">The notification has been created successfully</string>
+    <string name="enter_complete_data">Please enter complete data</string>
+    <string name="connect_successful">The connection is successful</string>
+    <string name="connect_fail">Failed to connect device</string>
+
+
+    <string name="parsing_data">Data transfer completed, Parsing data...</string>
+    <string name="updating_data">Updating fuel data, please wait...</string>
+    <string name="processing_completed">Fuel data processing completed</string>
+    <string name="request_successfully">Requested device info successfully</string>
+    <string name="set_dev_successfully">set device info successfully, Please restart the device!</string>
+    <string name="set_dev_fail">Failed to set device info</string>
+    <string name="sync_fail">Synchronization failed, please try again</string>
+    <string name="disconnect">Device is disconnected</string>
+
+
+
+
+
+
+
+
+
+</resources>

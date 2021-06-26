@@ -1,0 +1,64 @@
+<resources>
+    <string name="app_name">OilChecker</string>
+    <string name="home">首页</string>
+    <string name="statistic">统计</string>
+    <string name="statistical">统计</string>
+    <string name="setting">设置</string>
+    <string name="car_num">车牌号码</string>
+    <string name="add_device">添加设备</string>
+    <string name="normal">正常</string>
+    <string name="sync">同步数据</string>
+    <string name="unknown">未知</string>
+    <string name="exception">异常</string>
+    <string name="oil_state">油量状态</string>
+    <string name="average_fuel">平均油耗</string>
+    <string name="day">天</string>
+    <string name="week">周</string>
+    <string name="month">月</string>
+    <string name="quarter">季度</string>
+    <string name="year">年</string>
+    <string name="fuel">油量</string>
+    <string name="current_oil">当前油量</string>
+    <string name="ble_device">油量检测设备</string>
+    <string name="identify">设备标志符</string>
+    <string name="length">油箱长度</string>
+    <string name="width">油箱宽度</string>
+    <string name="height">油箱高度</string>
+    <string name="comparison_voltage">比较电压</string>
+    <string name="save">保存</string>
+    <string name="select">选择一辆车</string>
+    <string name="fuel_record">油耗记录</string>
+    <string name="refuel_record">加油记录</string>
+    <string name="fault_list">设备故障列表</string>
+    <string name="fault_record">故障记录</string>
+    <string name="search">搜索设备</string>
+    <string name="device_list">设备列表</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="add">添加</string>
+    <string name="Edit">修改</string>
+    <string name="Confirm">确认</string>
+    <string name="Tips">提示</string>
+    <string name="Cancle">取消</string>
+    <string name="ChangeDeviceInfoTips">如果修改设备参数会导致采集数据的偏差，您确认要修改吗？</string>
+    <string name="ble_not_available">蓝牙不可用</string>
+    <string name="open_ble">打开蓝牙，再试一次</string>
+    <string name="location_permission_missing">定位权限未打开</string>
+    <string name="location_disabled">请打开定位服务</string>
+    <string name="notify_set_up">通知已经建立成功</string>
+    <string name="enter_complete_data">请输入完整数据</string>
+    <string name="connect_successful">连接成功</string>
+    <string name="connect_fail">连接设备失败</string>
+
+    <string name="parsing_data">油量数据已经传输完成,处理数据中...</string>
+    <string name="updating_data">正在同步油量数据,请耐心等待...</string>
+    <string name="processing_completed">油量数据处理完成</string>
+    <string name="request_successfully">请求设备信息应答成功</string>
+    <string name="set_dev_successfully">设备参数设置成功,装置重启后生效!</string>
+    <string name="set_dev_fail">设备参数设置失败</string>
+    <string name="sync_fail">同步失败，请重试</string>
+    <string name="disconnect">连接已断开</string>
+
+
+
+
+</resources>

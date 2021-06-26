@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragment.StatisticFragment">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/tv_statis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/statistical"
+            android:textSize="28dp"
+            android:textColor="@color/black"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+        <TextView
+            android:id="@+id/tv_fuel_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fuel_record"
+            android:textSize="18sp"
+            android:textColor="@color/black"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="25dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_statis"/>
+        <ImageView
+            android:id="@+id/iv_fuel"
+            android:layout_width="25dp"
+            android:layout_height="26dp"
+
+            android:layout_marginEnd="15dp"
+            android:layout_marginTop="25dp"
+            android:background="@drawable/icon_record"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_statis"/>
+        <ImageView
+            android:id="@+id/placeholder1"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="35dp"
+            android:background="@drawable/empty"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_fuel_record"/>
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/chart_fuel"
+            android:layout_width="match_parent"
+            android:layout_height="270dp"
+            android:layout_marginTop="15dp"
+            android:visibility="invisible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_fuel_record"/>
+
+        <TextView
+            android:id="@+id/tv_refuel_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/refuel_record"
+            android:textSize="18sp"
+            android:textColor="@color/black"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="25dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/chart_fuel"/>
+        <ImageView
+            android:id="@+id/iv_refuel"
+            android:layout_width="25dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginTop="25dp"
+            android:background="@drawable/icon_record"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/chart_fuel"/>
+        <ImageView
+            android:id="@+id/placeholder2"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="35dp"
+            android:background="@drawable/empty"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+
+            app:layout_constraintTop_toBottomOf="@id/tv_refuel_record"/>
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/chart_refuel"
+            android:layout_width="match_parent"
+            android:layout_height="270dp"
+            android:layout_marginTop="15dp"
+            android:visibility="invisible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_refuel_record"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
