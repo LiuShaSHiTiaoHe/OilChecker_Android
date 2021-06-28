@@ -21,7 +21,8 @@ class DeviceListAdapter: RecyclerView.Adapter<DeviceListAdapter.ViewHolder>(){
             binding.root.setOnClickListener{
                 binding.tvName.text?.let { text ->
                     //navigate to back ,set current device
-                    HomeViewModel.setDevice(text.toString())
+//                    HomeViewModel.setDevice(text.toString())
+                    HomeViewModel.setDevice(binding.tvRealname.text.toString())
                     HomeViewModel.setMac(binding.tvMac.text.toString())
                     HomeViewModel.setIdentify(binding.tvIdentify.text.toString())
                     val direction = SelectCarFragmentDirections.actionSelectCarFragmentToHomeFragment()
@@ -32,6 +33,7 @@ class DeviceListAdapter: RecyclerView.Adapter<DeviceListAdapter.ViewHolder>(){
         fun bind(data: Device){
             with(binding) {
                 tvName.text = data.num + "(BT-${data.deviceId})"
+                tvRealname.text = data.num
                 tvMac.text = data.mac
                 tvIdentify.text = data.deviceId
                 Log.i("SelectCarFragment", "bind: ${data.num}")

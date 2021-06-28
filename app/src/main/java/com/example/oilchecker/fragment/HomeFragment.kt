@@ -54,12 +54,8 @@ class HomeFragment : Fragment(), View.OnClickListener{
         fragmentHomeFragmentBinding.llSync.setOnClickListener(this)
         fragmentHomeFragmentBinding.ivSync.setOnClickListener(this)
         fragmentHomeFragmentBinding.tvSync.setOnClickListener(this)
-       // fragmentHomeFragmentBinding.tvAverageOil.setOnClickListener(this)
         fragmentHomeFragmentBinding.tvRealStatus.text = getString(R.string.unknown)
         type = getString(R.string.day)
-
-
-
         fragmentHomeFragmentBinding.segmented {
             initialCheckedIndex = 0
             onSegmentChecked { segment ->
@@ -92,10 +88,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 txt = getString(R.string.unknown)
                 fragmentHomeFragmentBinding.tvRealStatus.setTextColor(resources.getColor(R.color.theme))
                 fragmentHomeFragmentBinding.tvAverage.text = "0.0 L"
-
-
             }
-
             fragmentHomeFragmentBinding.tvRealStatus.text = txt
         })
 
@@ -106,17 +99,16 @@ class HomeFragment : Fragment(), View.OnClickListener{
                     Toast.makeText(context, R.string.request_successfully, Toast.LENGTH_SHORT).show()
                 }
                 "requestFuelData" -> {
-                    //   fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
+                       fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.updating_data, Toast.LENGTH_SHORT).show()
                 }
                 "rev" -> {
-                 //   fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
+                    fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.parsing_data, Toast.LENGTH_SHORT).show()
                 }
                 "process" -> {
                     fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.processing_completed, Toast.LENGTH_SHORT).show()
-//                    AlertDialog.Builder(context).setMessage(getString(R.string.processing_completed)).create().show()
                 }
                 "fail" -> {
                     fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
@@ -151,7 +143,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
         if(currentDevice.isNotEmpty()){
             fragmentHomeFragmentBinding.tvCarNum.text = currentDevice
             //fragmentHomeFragmentBinding.tvCarNum.setTextColor(resources.getColor(R.color.black))
-
         }
 
     }
@@ -159,11 +150,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
     override fun onClick(v: View?) {
         when(v?.id){
             R.id.tv_car_num -> {
-                //for test when without ble device
-               /* val mac = "23:33:33:12:12:13"
-                val direction = HomeFragmentDirections.actionHomeFragmentToDeviceInfoFragment(mac)
-                v.findNavController().navigate(direction)*/
-
                 val direction = if(currentDevice.isNotEmpty()){
                     HomeFragmentDirections.actionHomeFragmentToSelectCarFragment()
                 }else {
@@ -174,8 +160,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
             R.id.iv_sync, R.id.tv_sync ->{
                 val mac = HomeViewModel.getMac()
                 fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
-
-                Log.i(TAG, "onClick: ${"001A".toInt(16)}  sync-->--->${HomeViewModel.getIdentify()}")
                 lifecycleScope.launch {
                     if (mac != null && mac.isNotEmpty()) {
                         //get fuel history data
@@ -185,21 +169,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
                         Toast.makeText(context, R.string.add_device, Toast.LENGTH_SHORT).show()
                     }
                 }
-
-            }
-            R.id.tv_average_oil ->{
-                val mac = HomeViewModel.getMac()
-
-                Log.i(TAG, "onClick: ${"001A".toInt(16)}  sync-->--->${HomeViewModel.getIdentify()}")
-                lifecycleScope.launch {
-                    //get fuel history data
-                    Log.i(TAG, "onClick: -->connect ")
-                    //02FF018585008201FDFFD800FDFFD700D800FDFFE400E400FDFFA1009C009C0097009300930093009300930093009300930001000100010001000300060006000600FDFF0100010002000200020002000200020002000100010001000100010001000200020002000200020002000200020002000200FDFF020002000200020002000200020002000200020002000200020002000200FDFF01000100010001000100FDFF0100FDFF0600060006000600FDFF060006000600FDFF060006000600060006000600060006000600FDFF06000600FDFF1200FDFF120012001200FDFF12001200FDFF1200120012001200120012001200FDFF120012001300FDFF1600FDFF4300FDFFCD0302D7298585008202120012001200FDFF3300FDFFFEFF1200120012001200120012001200120012001200120012001200120012001200130016001600FDFFFEFFFDFFFEFFFDFFFEFF15001500150015001500FDFF12001200120012001200120012001200FEFF12001200FEFF12001200120012001200120012001200120012001200120012001200120012001200FDFFFEFFFDFF1200FEFFFEFFFEFFFEFFFEFF12001200FEFFFDFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFDFFFEFFFEFFFEFFFEFFFDFFFEFFFEFFFDFFFEFFFEFFFDFFFEFFFEFFFDFF58030202FE85850082FF028303
-                    val data ="02FF0185850082FFFDFFD800FDFFD700D800FDFFE400E400FDFFA1009C009C0097009300930093009300930093009300930001000100010001000300060006000600FDFF0100010002000200020002000200020002000100010001000100010001000200020002000200020002000200020002000200FDFF020002000200020002000200020002000200020002000200020002000200FDFF01000100010001000100FDFF0100FDFF0600060006000600FDFF060006000600FDFF060006000600060006000600060006000600FDFF06000600FDFF1200FDFF120012001200FDFF12001200FDFF1200120012001200120012001200FDFF120012001300FDFF1600FDFF4300FDFFCD03"
-                           // "02D7298585008202120012001200FDFF3300FDFFFEFF1200120012001200120012001200120012001200120012001200120012001200130016001600FDFFFEFFFDFFFEFFFDFFFEFF15001500150015001500FDFF12001200120012001200120012001200FEFF12001200FEFF12001200120012001200120012001200120012001200120012001200120012001200FDFFFEFFFDFF1200FEFFFEFFFEFFFEFFFEFF12001200FEFFFDFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFEFFFDFFFEFFFEFFFEFFFEFFFDFFFEFFFEFFFDFFFEFFFEFFFDFFFEFFFEFFFDFF58030202FE85850082FF028303"
-                    viewModel.receiveFuelData(data)
-                }
-
             }
         }
     }
@@ -210,16 +179,13 @@ class HomeFragment : Fragment(), View.OnClickListener{
         viewModel.getFuelData()
 
         viewModel.fuelLiveData.observe(viewLifecycleOwner, Observer {
-//            lifecycleScope.launch {
-//
-//            }
             lineEntry.clear()
             Log.i(TAG, "createChart: list ${it.size}")
             val size = it.size
             if (size > 0){
                 fragmentHomeFragmentBinding.placeholder1.visibility = View.GONE
                 var index = 0
-                var fuelDatasList: ArrayList<String> = ArrayList()
+                var fuelDatasList = ArrayList<String>()
                 if (type == getString(R.string.day)){
                     if (size >=  30) {
                         index = size - 30
@@ -227,9 +193,10 @@ class HomeFragment : Fragment(), View.OnClickListener{
                             fuelDatasList.add(it[i])
                         }
                     }else{
-                        fuelDatasList.addAll(it)
+                        for (i in 0 until size){
+                            fuelDatasList.add(it[i])
+                        }
                     }
-
                 }else {
                     if (size >= 60) {
                         index = size - 60
@@ -237,7 +204,9 @@ class HomeFragment : Fragment(), View.OnClickListener{
                             fuelDatasList.add(it[i])
                         }
                     }else{
-                        fuelDatasList.addAll(it)
+                        for (i in 0 until size){
+                            fuelDatasList.add(it[i])
+                        }
                     }
                 }
                 for (i in 0 until fuelDatasList.size - 1){
@@ -269,9 +238,8 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 fragmentHomeFragmentBinding.lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
                 fragmentHomeFragmentBinding.lineChart.axisRight.isEnabled = false
                 fragmentHomeFragmentBinding.lineChart.data = data
-
                 fragmentHomeFragmentBinding.lineChart.setBackgroundColor(resources.getColor(R.color.white))
-                fragmentHomeFragmentBinding.lineChart.animateXY(30, 30)
+//                fragmentHomeFragmentBinding.lineChart.animateXY(30, 30)
             }
 
         })

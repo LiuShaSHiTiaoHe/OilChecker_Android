@@ -45,6 +45,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import net.akaish.ikey.hkb.IKeyHexKeyboard
 import java.lang.StringBuilder
+import kotlin.concurrent.schedule
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -102,10 +103,12 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
         macAddress = args.mac
         bleDevice = MainApplication.rxBleClient.getBleDevice(macAddress!!)
-        RxBleLog.setLogLevel(RxBleLog.VERBOSE)
+//        RxBleLog.setLogLevel(RxBleLog.VERBOSE)
         //viewModel.doConnect(macAddress)
-        doConnect()
-        
+        Timer().schedule(1000){
+            doConnect()
+        }
+//        doConnect()
         viewModel.tipLiveData.observe(viewLifecycleOwner, {
             Log.i(TAG, "onViewCreated: tipLiveData -->$it")
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -356,7 +359,7 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
         var dataLen = 1.toString(16)   //数据长度 1字节
         val len = (256 - 1).toString(16) //数据长补数 1字节
-        Log.i(TAG, "onClick: $len")
+//        Log.i(TAG, "onClick: $len")
         //5+2
         // device identify --> 0038-->0000
         val data = "01ff0000018511"

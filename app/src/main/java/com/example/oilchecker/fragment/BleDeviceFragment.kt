@@ -27,8 +27,10 @@ import dagger.hilt.android.internal.managers.FragmentComponentManager
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import java.lang.Thread.sleep
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.schedule
 
 @AndroidEntryPoint
 class BleDeviceFragment : Fragment(), View.OnClickListener {
@@ -39,17 +41,14 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
     private var hasClickedScan = false
     private var isScanning: Boolean= scanDisposable != null
     private val resultsAdapter = ScanResultsAdapter {
-        //doconnect
-//        Log.i(TAG, "scanResult -->: ")
 
         scanDisposable?.dispose()
+        scanDisposable = null
+//        sleep(1000)
         val mac = it.bleDevice.macAddress
         Log.i(TAG, "scanResult: onclick --> ${it.bleDevice.macAddress} ")
-
         val direction = BleDeviceFragmentDirections.actionBleDeviceFragmentToDeviceInfoFragment(mac)
         bleDeviceFragmentBinding.scanResults.findNavController().navigate(direction)
-
-//        Log.i(TAG, "scanResult: ${it.bleDevice.macAddress} ")
     }
 
     companion object {
@@ -117,6 +116,7 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
     private fun scan(){
         if(isScanning){
             scanDisposable?.dispose()
+            scanDisposable = null
         }else {
             if (rxBleClient.isScanRuntimePermissionGranted){
                 scanBleDevices()
@@ -199,8 +199,8 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
     }
 
     private fun dispose() {
-        scanDisposable = null
-        resultsAdapter.clearScanResults()
+//        scanDisposable = null
+//        resultsAdapter.clearScanResults()
     }
 
     override fun onRequestPermissionsResult(

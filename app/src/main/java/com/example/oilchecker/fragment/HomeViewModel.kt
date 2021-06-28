@@ -42,17 +42,11 @@ class HomeViewModel @Inject constructor(
 
 ) : ViewModel() {
     private val TAG = "FuelData"
-    private lateinit var connectionObservable: Observable<RxBleConnection>
     private val connectionDisposable = CompositeDisposable()
     private val disconnectTriggerSubject = PublishSubject.create<Unit>()
     private var stateDisposable: Disposable? = null
-
-
     private lateinit var mConnection: RxBleConnection
     private lateinit var bleDevice: RxBleDevice
-    private val allRevData = StringBuilder()
-
-    private val allData = StringBuilder()
     private var isRequestFuelData = false
     private var receiveFuelData: String = ""
 
@@ -101,36 +95,52 @@ class HomeViewModel @Inject constructor(
 
     fun doConnect(mac: String){
         bleDevice = MainApplication.rxBleClient.getBleDevice(mac!!)
-
         if (bleDevice.isConnected) {
             triggerDisconnect()
-        } else {
-            connectionObservable = bleDevice.establishConnection(false)
-            connectionObservable
-                //.flatMapSingle { it.discoverServices() }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    onConnectionReceived(it)
-                },{
-                    onConnectionFailure(it)
-                })
-                .let { connectionDisposable.add(it) }
-
-            bleDevice.observeConnectionStateChanges()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { onConnectionStateChange(it) }
-                .let { stateDisposable = it }
         }
+        Timer().schedule(1000){
+            setupConnection()
+        }
+//        if (bleDevice.isConnected) {
+//            Log.i(TAG, "bleDevice.isConnected")
+//            triggerDisconnect()
+//        } else {
+//            connectionObservable = bleDevice.establishConnection(false)
+//            connectionObservable
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe({
+//                    onConnectionReceived(it)
+//                },{
+//                    onConnectionFailure(it)
+//                })
+//                .let { connectionDisposable.add(it) }
+//
+//            bleDevice.observeConnectionStateChanges()
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe { onConnectionStateChange(it) }
+//                .let { stateDisposable = it }
+//        }
+    }
 
+    private fun setupConnection(){
+        bleDevice.establishConnection(false)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                onConnectionReceived(it)
+            },{
+                onConnectionFailure(it)
+            })
+            .let { connectionDisposable.add(it) }
+
+        bleDevice.observeConnectionStateChanges()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { onConnectionStateChange(it) }
+            .let { stateDisposable = it }
     }
 
     private fun onConnectionStateChange(newState: RxBleConnection.RxBleConnectionState) {
         val text = newState.name.toString()
         Log.i(TAG, "onConnectionStateChange: $text")
-//        if (text == "CONNECTED" || text == "DISCONNECTED"){
-//            Log.i(TAG, "onConnectionStateChange: ---> invisible")
-//            tipLiveData.postValue("disconnect")
-//        }
         if (text == "DISCONNECTED"){
             tipLiveData.postValue("disconnect")
         }
@@ -138,17 +148,11 @@ class HomeViewModel @Inject constructor(
 
     private fun onConnectionFailure(throwable: Throwable) {
         Log.i(TAG, "onConnectionFailure: $throwable")
-        //Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
         tipLiveData.postValue("connectionfail")
-
-
     }
 
     private fun onConnectionReceived(connection: RxBleConnection) {
-        //Toast.makeText(context, "连接成功", Toast.LENGTH_SHORT).show()
         mConnection = connection
-
-        Log.i(TAG, "onConnectionReceived: --->")
         if(bleDevice.isConnected) {
             Log.i(TAG, "doConnect: isConnected-->")
             mConnection.setupNotification(Contants.NOTIFY_UUID, NotificationSetupMode.QUICK_SETUP)
@@ -166,14 +170,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onNotificationReceived(bytes: ByteArray) {
-        Log.i(TAG, "onNotificationReceived:  ${bytes.toHexString()}")
-        //Toast.makeText(context, bytes.toHex(), Toast.LENGTH_SHORT).show()
         Log.i(TAG, "---onNext--->>>>$bytes --->${bytes.toHex()}")
-
-        //process fuel data
-       /* val result = bytes.toHex()
-        //receiveFuelData(result)
-        revFuelData(result)*/
         if (!status) {
             status = true
             val result = bytes.toHex()
@@ -190,7 +187,7 @@ class HomeViewModel @Inject constructor(
                             database.deviceDao().insertDeviceSize(identify, length, width, height,compare)
                         }
                     }
-                    Timer().schedule(4000){
+                    Timer().schedule(1000){
                         getFuelInfo()
                     }
                 }
@@ -212,7 +209,6 @@ class HomeViewModel @Inject constructor(
                     tipLiveData.postValue("rev")
                     getFuelInfoSuccess()//接收到全部数据之后，发送接收成功指令
                     processFuelData()
-//                    tipLiveData.postValue("process")
                     //接收数据成功之后，最好是断开蓝牙连接！！！！！！不然我让蓝牙设备断电之后。 APP会闪退
                     if (bleDevice.isConnected){
                         triggerDisconnect()
@@ -226,19 +222,13 @@ class HomeViewModel @Inject constructor(
     fun checkEndOfReceiveData() : Boolean {
         val tempData = receiveFuelData
         var dataSize = tempData.length
-//        Log.i(TAG," ------> in  checkEndOfReceiveData ${dataSize}")
         var cursor = 0
         var isEndofFuelData = false
         if (dataSize > 16){
             var isContinue = true
             while (isContinue){
-
-//                Log.i(TAG," ------> in  isContinue  ${tempData}  ${dataSize}")
                 val length = tempData.substring(cursor + 2,cursor + 4).toInt(16) * 2
                 val firstDataByte = tempData.substring(cursor + 14, cursor + 16)
-//                Log.i(TAG," ------> in  checkEndOfReceiveData length ====== ${length} ")
-//                Log.i(TAG," ------> in  checkEndOfReceiveData firstDataByte ====== ${firstDataByte} ")
-
                 if (firstDataByte == "FF"){
                     isContinue = false
                     isEndofFuelData = true
@@ -255,9 +245,7 @@ class HomeViewModel @Inject constructor(
                                 isContinue = false
                                 isEndofFuelData = false
                             }else{
-//                                dataSize = dataSize - length - 18
                                 cursor += length + 18
-//                                Log.i(TAG," ------> in  checkEndOfReceiveData cursor ====== ${cursor} ")
                             }
                         }
                     }
@@ -300,8 +288,7 @@ class HomeViewModel @Inject constructor(
         result.append("ff")
         result.append(sumLen)
         result.append("03")
-
-
+        
         val write = result.toString()
         Log.i(TAG, "onClick: $write")
 
@@ -321,18 +308,13 @@ class HomeViewModel @Inject constructor(
 
 
     private fun onNotificationSetupFailure(throwable: Throwable){
-
         Log.i(TAG, "onNotificationSetupFailure: $throwable")
-       // Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
         tipLiveData.postValue("connectionfail")
-
-
     }
 
 
     private fun triggerDisconnect(){
-        tipLiveData.postValue("disconnect")
-        connectionDisposable?.dispose()
+        connectionDisposable.clear()
         stateDisposable?.dispose()
         disconnectTriggerSubject.onNext(Unit)
     }
@@ -431,8 +413,6 @@ class HomeViewModel @Inject constructor(
                         database.deviceDao().insertStatusAndAverage(id, "正常", average)
                         fuelStatusLiveData.postValue("正常")
                     }
-//                    var addedlist = arrayOf(3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 55.0746, 55.0746, 55.0746, 56.3859, 66.0021, 66.0021, 60.7569, 61.194, 59.0085, 58.5714, 58.1343, 56.823, 56.3859, 54.6375, 50.7036, 49.8294, 47.2068, 44.1471, 41.0874, 35.4051, 35.4051, 35.4051, 58.1343, 66.0021, 64.2537, 62.9424, 61.194, 61.194, 58.5714, 59.0085, 55.9488, 52.0149, 51.5778, 51.5778, 45.8955, 45.8955, 45.8955, 43.71, 43.71, 43.71, 41.0874, 41.0874, 41.0874, 38.9019, 38.4648, 37.1535, 37.1535, 37.1535, 34.5309, 34.5309, 34.5309, 29.2857, 43.71, 43.71, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484)
-//                    fuelList.addAll(addedlist.map { it.toString() })
                     fuelLiveData.postValue(fuelList)
 
                     val dataList = arrayListOf<Fuel>()
@@ -449,7 +429,7 @@ class HomeViewModel @Inject constructor(
                     }
                     database.fuelConsuemDataDao().insertFuelConsumeData(fuelConsumedataList)
                     val refuelDataList = arrayListOf<Refuel>()
-                    for (i in 0 until fuelConsumeList.size){
+                    for (i in 0 until refuelList.size){
                         refuelDataList.add(Refuel(i,id,refuelList[i]))
                     }
                     database.refuelDataDao().insertRefuelData(refuelDataList)
@@ -460,149 +440,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun receiveFuelData(result :String){
-//        tipLiveData.postValue("request")
-
-        if (result.length > 14){
-            //02FF018585008201
-
-            val lenStr = result.substring(2,4)
-            var len = 0
-            val cmd = result.substring(12,14)
-            val num = result.substring(14,16)
-            if (cmd == "82") {
-                // result.substring(14,16)  ->01
-                Log.i(TAG, "receiveFuelData: ${result.substring(14,16)} ")
-                allData.append(result.substring(16, result.length-4))
-                len = lenStr.toInt(16)
-                if (result.substring(14,16) == "FF"){
-                    processFuelData(allData.toString())
-                    allData.clear()
-                }else {
-                    processFuelData(allData.toString())
-                }
-
-            }
-        }
-    }
-
-    fun processFuelData(data: String){
-
-        viewModelScope.launch {
-            async(Dispatchers.IO) {
-                val id = getIdentify() ?: return@async
-                val device = database.deviceDao().getDevice(id)
-                Log.i(TAG, "processFuelData: $device")
-                if (device != null){
-                    val length = device.length.toInt()
-                    val width = device.width.toInt()
-
-                    val len = data.length
-                    var i = 0
-                    var index = 0
-                    var j = 0
-                    var k = 0
-                    var h: Int
-                    var record: Double
-                    var v: Double
-                    var str: String
-                    var n = StringBuilder()
-                    val fuelList = ArrayList<String>()
-                    val fuelConsumeList = ArrayList<String>()
-                    val refuelList = ArrayList<String>()
-                    var average = String()
-                    var maxFuel = 0.0
-
-
-                    while (i < (len-4)/4){
-                        //height --> FD
-                        // h = data.substring(i*4, i*4+4).toInt(16)
-                        str =data.substring(i*4, i*4+4)
-                        if (str == "FDFF" || str == "FEFF"){
-                            i++
-                            continue
-                        }
-
-                        Log.i(TAG, "processFuelData: fueldata str-> $str")
-
-                        n.append(str.substring(2,4))
-                        n.append(str.substring(0,2))
-                        h = n.toString().toInt(16)
-                        n.clear()
-                        //Length*Width*Height
-                        //h 0001
-
-                        Log.i(TAG, "processFuelData: fueldata real height-> $h")
-                        v = (h.toDouble()*length * width)/1000000
-
-                        h *= length * width
-                        Log.i(TAG, "processFuelData: fueldata real capavity->$v  --> ${v.toString()}")
-
-                        fuelList.add(index,v.toString())
-                        if(index > 0){
-                            //fuel consume pre-current
-                            record = (fuelList[index-1].toDouble() - v)
-                            if(record > 0){
-                                //fuel consume
-                                fuelConsumeList.add(j, String.format("%.2f", record))
-                                average = String.format("%.2f", record)
-                                if (maxFuel < record){
-                                    maxFuel = record
-                                }
-                                j++
-                            }
-                            // refuel next-current
-                            record = (v - fuelList[index-1].toDouble())
-
-                            if(record > 0) {
-                                //refuel
-                                refuelList.add(k, String.format("%.2f", record))
-                                k++
-                            }
-                        }
-                        index++
-                        i++
-                    }
-                    Log.i(TAG, "onNotificationReceived: fuel ->${fuelList.size} fuel consume ${fuelConsumeList.size}  refuel ${refuelList.size}")
-
-                    setAverageOil(average)
-                    averageFuelConsumeLiveData.postValue(average)
-                    fuelLiveData.postValue(fuelList)
-
-                    if (maxFuel > 5.0){
-                        database.deviceDao().insertStatusAndAverage(id, "异常", average)
-                        fuelStatusLiveData.postValue("异常")
-                    }else {
-                        database.deviceDao().insertStatusAndAverage(id, "正常", average)
-                        fuelStatusLiveData.postValue("正常")
-                    }
-                    fuelLiveData.postValue(fuelList)
-
-
-                    val dataList = arrayListOf<Fuel>()
-
-                    for (i in 0 until fuelList.size){
-                        dataList.add(Fuel(i,id,fuelList[i]))
-                    }
-
-                    Log.i(TAG, "processFuelData: datalist size --> ${dataList.size}")
-                    database.fuelDataDao().insertFuelData(dataList)
-
-                    val fuelConsumedataList = arrayListOf<FuelConsume>()
-                    for (i in 0 until fuelConsumeList.size){
-                        fuelConsumedataList.add(FuelConsume(i,id,fuelConsumeList[i]))
-                    }
-                    database.fuelConsuemDataDao().insertFuelConsumeData(fuelConsumedataList)
-                    val refuelDataList = arrayListOf<Refuel>()
-                    for (i in 0 until fuelConsumeList.size){
-                        refuelDataList.add(Refuel(i,id,refuelList[i]))
-                    }
-                    database.refuelDataDao().insertRefuelData(refuelDataList)
-                    tipLiveData.postValue("process")
-                }
-            }
-        }
-    }
 
     private fun getDeviceInfo() {
         var dataLen = 1.toString(16)   //数据长度 1字节
