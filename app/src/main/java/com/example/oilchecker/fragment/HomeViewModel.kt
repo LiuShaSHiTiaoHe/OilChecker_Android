@@ -31,7 +31,10 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.*
 import java.lang.StringBuilder
+import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
+import kotlin.concurrent.schedule
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -136,7 +139,7 @@ class HomeViewModel @Inject constructor(
     private fun onConnectionFailure(throwable: Throwable) {
         Log.i(TAG, "onConnectionFailure: $throwable")
         //Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
-        tipLiveData.postValue("fail")
+        tipLiveData.postValue("connectionfail")
 
 
     }
@@ -187,8 +190,9 @@ class HomeViewModel @Inject constructor(
                             database.deviceDao().insertDeviceSize(identify, length, width, height,compare)
                         }
                     }
-                    Thread.sleep(4000)
-                    getFuelInfo()
+                    Timer().schedule(4000){
+                        getFuelInfo()
+                    }
                 }
             }
 
@@ -205,12 +209,14 @@ class HomeViewModel @Inject constructor(
                     status = false
                     Log.i(TAG,"Complete --->${receiveFuelData}")
                     isRequestFuelData = false
-//                    tipLiveData.postValue("rev")
+                    tipLiveData.postValue("rev")
                     getFuelInfoSuccess()//接收到全部数据之后，发送接收成功指令
                     processFuelData()
 //                    tipLiveData.postValue("process")
                     //接收数据成功之后，最好是断开蓝牙连接！！！！！！不然我让蓝牙设备断电之后。 APP会闪退
-                    triggerDisconnect()
+                    if (bleDevice.isConnected){
+                        triggerDisconnect()
+                    }
                 }
             }
 
@@ -318,7 +324,7 @@ class HomeViewModel @Inject constructor(
 
         Log.i(TAG, "onNotificationSetupFailure: $throwable")
        // Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
-        tipLiveData.postValue("fail")
+        tipLiveData.postValue("connectionfail")
 
 
     }
@@ -328,7 +334,6 @@ class HomeViewModel @Inject constructor(
         tipLiveData.postValue("disconnect")
         connectionDisposable?.dispose()
         stateDisposable?.dispose()
-
         disconnectTriggerSubject.onNext(Unit)
     }
 
@@ -426,6 +431,8 @@ class HomeViewModel @Inject constructor(
                         database.deviceDao().insertStatusAndAverage(id, "正常", average)
                         fuelStatusLiveData.postValue("正常")
                     }
+//                    var addedlist = arrayOf(3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 3.0597, 55.0746, 55.0746, 55.0746, 56.3859, 66.0021, 66.0021, 60.7569, 61.194, 59.0085, 58.5714, 58.1343, 56.823, 56.3859, 54.6375, 50.7036, 49.8294, 47.2068, 44.1471, 41.0874, 35.4051, 35.4051, 35.4051, 58.1343, 66.0021, 64.2537, 62.9424, 61.194, 61.194, 58.5714, 59.0085, 55.9488, 52.0149, 51.5778, 51.5778, 45.8955, 45.8955, 45.8955, 43.71, 43.71, 43.71, 41.0874, 41.0874, 41.0874, 38.9019, 38.4648, 37.1535, 37.1535, 37.1535, 34.5309, 34.5309, 34.5309, 29.2857, 43.71, 43.71, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484, 1.7484)
+//                    fuelList.addAll(addedlist.map { it.toString() })
                     fuelLiveData.postValue(fuelList)
 
                     val dataList = arrayListOf<Fuel>()
@@ -685,7 +692,7 @@ class HomeViewModel @Inject constructor(
         val inputBytes: ByteArray = write.toByteArray()
 
         if(bleDevice.isConnected) {
-            tipLiveData.postValue("rev")
+            tipLiveData.postValue("requestFuelData")
             mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes.hex2byte())
                 .map { Log.i(TAG, "getDeviceInfo: write --> ${it.toHex()}") }
                 .observeOn(AndroidSchedulers.mainThread())
@@ -703,7 +710,7 @@ class HomeViewModel @Inject constructor(
 
     private fun onWriteFailure(throwable: Throwable){
         Log.i(TAG, "onWriteFailure: ${throwable.message}")
-        tipLiveData.postValue("fail")
+        tipLiveData.postValue("writeDatafail")
     }
 
     fun getFuelData(){

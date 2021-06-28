@@ -25,10 +25,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), View.OnClickListener{
@@ -108,6 +105,10 @@ class HomeFragment : Fragment(), View.OnClickListener{
                   //  fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.request_successfully, Toast.LENGTH_SHORT).show()
                 }
+                "requestFuelData" -> {
+                    //   fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
+                    Toast.makeText(context, R.string.updating_data, Toast.LENGTH_SHORT).show()
+                }
                 "rev" -> {
                  //   fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.parsing_data, Toast.LENGTH_SHORT).show()
@@ -121,10 +122,17 @@ class HomeFragment : Fragment(), View.OnClickListener{
                     fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
                 }
+                "connectionfail" -> {
+                    fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+                    Toast.makeText(context, R.string.connect_fail, Toast.LENGTH_SHORT).show()
+                }
+                "writeDatafail" -> {
+                    fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+                    Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
+                }
                 "disconnect" -> {
                     fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.disconnect, Toast.LENGTH_SHORT).show()
-
                 }
             }
         })
@@ -202,6 +210,9 @@ class HomeFragment : Fragment(), View.OnClickListener{
         viewModel.getFuelData()
 
         viewModel.fuelLiveData.observe(viewLifecycleOwner, Observer {
+//            lifecycleScope.launch {
+//
+//            }
             lineEntry.clear()
             Log.i(TAG, "createChart: list ${it.size}")
             val size = it.size
@@ -243,13 +254,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
                         lineEntry.add(Entry(i.toFloat(), fuelDatasList[i].toFloat()))
                     }
                 }
-//                if (index < 0){
-//                    index = 0
-//                }
-//                for (i in index until size){
-//                    Log.i(TAG, "createChart: ${it[i].toFloat()}")
-//                    lineEntry.add(Entry(i.toFloat(), it[i].toFloat()))
-//                }
+
                 val linedataset = LineDataSet(lineEntry, getString(R.string.fuel))
                 linedataset.color = resources.getColor(R.color.theme)
                 linedataset.setDrawCircles(true)

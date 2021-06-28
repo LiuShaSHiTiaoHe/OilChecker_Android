@@ -171,7 +171,8 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
     private fun onConnectionFailure(throwable: Throwable) {
         Log.i(TAG, "onConnectionFailure: $throwable")
-        Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
+//        Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, getString(R.string.connect_fail), Toast.LENGTH_SHORT).show()
         deviceFragmentBinding.btnSave.findNavController().navigateUp()
     }
 
