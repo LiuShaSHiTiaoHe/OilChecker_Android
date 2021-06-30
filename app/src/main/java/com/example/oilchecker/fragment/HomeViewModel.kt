@@ -91,6 +91,19 @@ class HomeViewModel @Inject constructor(
             return SpUtils.getString("status")
         }
 
+        fun setThresholdValue(value: Double){
+            SpUtils.put("threshold", value)
+        }
+
+        fun getThreshold():Double{
+            val value = SpUtils.getDouble("threshold")
+            if (value == null){
+                return  5.00
+            }else{
+                return  value
+            }
+        }
+
     }
 
     fun doConnect(mac: String){
@@ -101,25 +114,6 @@ class HomeViewModel @Inject constructor(
         Timer().schedule(1000){
             setupConnection()
         }
-//        if (bleDevice.isConnected) {
-//            Log.i(TAG, "bleDevice.isConnected")
-//            triggerDisconnect()
-//        } else {
-//            connectionObservable = bleDevice.establishConnection(false)
-//            connectionObservable
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe({
-//                    onConnectionReceived(it)
-//                },{
-//                    onConnectionFailure(it)
-//                })
-//                .let { connectionDisposable.add(it) }
-//
-//            bleDevice.observeConnectionStateChanges()
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe { onConnectionStateChange(it) }
-//                .let { stateDisposable = it }
-//        }
     }
 
     private fun setupConnection(){
@@ -402,17 +396,42 @@ class HomeViewModel @Inject constructor(
                         }
                     }
                     Log.i(TAG,"processFuelData fuelList All data --->${fuelList}")
-
                     Log.i(TAG, "onNotificationReceived: max-> $maxFuel fuel ->${fuelList.size} fuel consume ${fuelConsumeList.size}  refuel ${refuelList.size}")
-
                     setAverageOil(average)
-                    if (maxFuel > 5.0){
-                        database.deviceDao().insertStatusAndAverage(id, "异常", average)
-                        fuelStatusLiveData.postValue("异常")
-                    }else {
+//                    if (maxFuel > 5.0){
+//                        database.deviceDao().insertStatusAndAverage(id, "异常", average)
+//                        fuelStatusLiveData.postValue("异常")
+//                    }else {
+//                        database.deviceDao().insertStatusAndAverage(id, "正常", average)
+//                        fuelStatusLiveData.postValue("正常")
+//                    }
+                    var isNormal = true
+                    val threshold = getThreshold()
+                    var indexForException = 0
+
+                    if (fuelList.size > 50){
+                        indexForException = fuelList.size - 50
+                    }else{
+                        indexForException = fuelList.size
+                    }
+                    for (index in indexForException until fuelList.size){
+                        if (index + 1 < fuelList.size - 1){
+                            val firstData = fuelList[index].toDouble()
+                            val nextData = fuelList[index+1].toDouble()
+                            if (firstData - nextData > threshold){
+                                isNormal = false
+                                break
+                            }
+                        }
+                    }
+                    if (isNormal){
                         database.deviceDao().insertStatusAndAverage(id, "正常", average)
                         fuelStatusLiveData.postValue("正常")
+                    }else{
+                        database.deviceDao().insertStatusAndAverage(id, "异常", average)
+                        fuelStatusLiveData.postValue("异常")
                     }
+
                     fuelLiveData.postValue(fuelList)
 
                     val dataList = arrayListOf<Fuel>()

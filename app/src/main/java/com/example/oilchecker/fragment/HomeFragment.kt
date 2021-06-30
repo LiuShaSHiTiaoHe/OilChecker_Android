@@ -38,6 +38,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
     private lateinit var viewModel: HomeViewModel
     private var currentDevice: String = ""
     private var type: String = ""
+    private val lineEntry = ArrayList<Entry>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -66,7 +67,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
             onSegmentUnchecked { segment -> Log.i(TAG, "onViewCreated: unchecked")}
         }
         viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-        Log.i(TAG, "onViewCreated: ${HomeViewModel.getAverageOil()}  --> ${HomeViewModel.getStatus()}")
+//        Log.i(TAG, "onViewCreated: ${HomeViewModel.getAverageOil()}  --> ${HomeViewModel.getStatus()}")
 
         viewModel.averageFuelConsumeLiveData.observe(viewLifecycleOwner, {
             if (it.isEmpty()){
@@ -128,56 +129,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 }
             }
         })
-
-        createChart()
-    }
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        // TODO: Use the ViewModel
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-        currentDevice = HomeViewModel.getDevice().toString()
-        if(currentDevice.isNotEmpty()){
-            fragmentHomeFragmentBinding.tvCarNum.text = currentDevice
-            //fragmentHomeFragmentBinding.tvCarNum.setTextColor(resources.getColor(R.color.black))
-        }
-
-    }
-
-    override fun onClick(v: View?) {
-        when(v?.id){
-            R.id.tv_car_num -> {
-                val direction = if(currentDevice.isNotEmpty()){
-                    HomeFragmentDirections.actionHomeFragmentToSelectCarFragment()
-                }else {
-                    HomeFragmentDirections.actionHomeFragmentToBleDeviceFragment()
-                }
-                v.findNavController().navigate(direction)
-            }
-            R.id.iv_sync, R.id.tv_sync ->{
-                val mac = HomeViewModel.getMac()
-                fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
-                lifecycleScope.launch {
-                    if (mac != null && mac.isNotEmpty()) {
-                        //get fuel history data
-                        Log.i(TAG, "onClick: -->connect $mac")
-                        viewModel.doConnect(mac)
-                    } else {
-                        Toast.makeText(context, R.string.add_device, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-    }
-
-    fun createChart(){
-
-        val lineEntry = ArrayList<Entry>()
-        viewModel.getFuelData()
-
         viewModel.fuelLiveData.observe(viewLifecycleOwner, Observer {
             lineEntry.clear()
             Log.i(TAG, "createChart: list ${it.size}")
@@ -239,10 +190,59 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 fragmentHomeFragmentBinding.lineChart.axisRight.isEnabled = false
                 fragmentHomeFragmentBinding.lineChart.data = data
                 fragmentHomeFragmentBinding.lineChart.setBackgroundColor(resources.getColor(R.color.white))
-//                fragmentHomeFragmentBinding.lineChart.animateXY(30, 30)
+                fragmentHomeFragmentBinding.lineChart.animateXY(30, 30)
             }
 
         })
+    }
+
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        // TODO: Use the ViewModel
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.i(TAG, "onResume:")
+        currentDevice = HomeViewModel.getDevice().toString()
+        if(currentDevice.isNotEmpty()){
+            fragmentHomeFragmentBinding.tvCarNum.text = currentDevice
+            createChart()
+            //fragmentHomeFragmentBinding.tvCarNum.setTextColor(resources.getColor(R.color.black))
+        }
+
+    }
+
+    override fun onClick(v: View?) {
+        when(v?.id){
+            R.id.tv_car_num -> {
+                val direction = if(currentDevice.isNotEmpty()){
+                    HomeFragmentDirections.actionHomeFragmentToSelectCarFragment()
+                }else {
+                    HomeFragmentDirections.actionHomeFragmentToBleDeviceFragment()
+                }
+                v.findNavController().navigate(direction)
+            }
+            R.id.iv_sync, R.id.tv_sync ->{
+                val mac = HomeViewModel.getMac()
+                fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
+                lifecycleScope.launch {
+                    if (mac != null && mac.isNotEmpty()) {
+                        //get fuel history data
+                        Log.i(TAG, "onClick: -->connect $mac")
+                        viewModel.doConnect(mac)
+                    } else {
+                        Toast.makeText(context, R.string.add_device, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    fun createChart(){
+        viewModel.getFuelData()
     }
 
     override fun onStop() {

@@ -21,14 +21,16 @@ class FuelListAdapter: RecyclerView.Adapter<FuelListAdapter.ViewHolder>(){
     private var fuels: ArrayList<FuelConsume> = ArrayList()
     private var context: Context? = null
 
-
     inner class ViewHolder(private val binding: ItemFuelRecordBinding): RecyclerView.ViewHolder(binding.root){
         fun bind(data: FuelConsume){
             with(binding) {
-                tvName.text =  context?.getString(R.string.refuel_record)
+                tvName.text =  context?.getString(R.string.fuel_record)
                 tvId.text = data.deviceId
                 tvNum.text = data.id.toString()
                 tvVolume.text = data.capacity
+                if (data.capacity!!.toDouble() > HomeViewModel.getThreshold()){
+                    tvVolume.setTextColor(context!!.resources.getColor(R.color.red))
+                }
                 Log.i("SelectCarFragment", "bind: ${data.capacity}")
             }
         }

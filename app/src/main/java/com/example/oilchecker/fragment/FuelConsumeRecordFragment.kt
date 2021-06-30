@@ -97,11 +97,7 @@ class FuelConsumeRecordFragment : Fragment(), View.OnClickListener {
                             }
                         }
                         getString(R.string.year) -> {
-                            if (size >= 61){
-                                list = it.subList(size-61, size-1)
-                            }else {
-                                list = it
-                            }
+                            list = it
                         }
                     }
                     listAdapter.apply {
