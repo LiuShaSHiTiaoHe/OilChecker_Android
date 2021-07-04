@@ -1,6 +1,10 @@
 package com.example.oilchecker.fragment
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
 import android.text.Editable
 import android.util.Log
 import android.widget.Toast
@@ -97,8 +101,21 @@ class HomeViewModel @Inject constructor(
 
         fun getThreshold():Double{
             val value = SpUtils.getDouble("threshold")
-            if (value == null){
+            if (value == 0.0){
                 return  5.00
+            }else{
+                return  value!!
+            }
+        }
+
+        //首页segment index
+        fun setSegmentIndex(value: Int){
+            SpUtils.put("segmentIndex",value)
+        }
+        fun getSegmentIndex(): Int{
+            val value = SpUtils.getInt("segmentIndex")
+            if (value == null){
+                return  0
             }else{
                 return  value
             }
@@ -109,11 +126,15 @@ class HomeViewModel @Inject constructor(
     fun doConnect(mac: String){
         bleDevice = MainApplication.rxBleClient.getBleDevice(mac!!)
         if (bleDevice.isConnected) {
+            return
+        }else
+        {
             triggerDisconnect()
+            Timer().schedule(1000){
+                setupConnection()
+            }
         }
-        Timer().schedule(1000){
-            setupConnection()
-        }
+
     }
 
     private fun setupConnection(){
@@ -326,18 +347,16 @@ class HomeViewModel @Inject constructor(
                     val fuelList = ArrayList<String>()
                     var isContinue = true
                     var cursor = 0
-                    var new = StringBuilder()
-                    var realHeight: Int
-                    var v: Double
-                    var i = 0
-                    var j = 0
-                    var k = 0
-                    var record: Double
+//                    var new = StringBuilder()
+                    var bigToLittelEnd = StringBuilder()
+                    var realHeightIntValue: Int
+                    var indexOfFuelData = 0
+                    var indexOfConsumptionData = 0
+                    var indexOfRefuelData = 0
 
                     val fuelConsumeList = ArrayList<String>()
                     val refuelList = ArrayList<String>()
-                    var maxFuel = 0.0
-                    var average = String()
+//                    var average = String()
 
                     while (isContinue) {
                         val len = receiveFuelData.substring(cursor + 2, cursor + 4).toInt(16) * 2
@@ -355,56 +374,41 @@ class HomeViewModel @Inject constructor(
                                 if (fuelData == "FDFF" || fuelData == "FEFF") {
                                     //过滤
                                 }else{
-                                    new.append(fuelData.substring(2,4))
-                                    new.append(fuelData.substring(0,2))
-                                    realHeight = new.toString().toInt(16)
-                                    new.clear()
-                                    Log.i(TAG, "processFuelData: fueldata real height-> $realHeight")
-                                    v = (realHeight.toDouble()*length * width)/1000000
-                                    realHeight *= length * width
-
-                                    Log.i(TAG, "processFuelData: fueldata real capavity->$v  --> ${v.toString()}")
-
-                                    fuelList.add(i,v.toString())
-                                    if(i > 0){
-                                        record = (fuelList[i-1].toDouble() - v)
+                                    bigToLittelEnd.append(fuelData.substring(2,4))
+                                    bigToLittelEnd.append(fuelData.substring(0,2))
+                                    realHeightIntValue = bigToLittelEnd.toString().toInt(16)
+                                    bigToLittelEnd.clear()
+                                    val realFuelData = (realHeightIntValue.toDouble()*length * width)/1000000
+                                    Log.i(TAG, "processFuelData: height:-> $realHeightIntValue   fueldata real capavity -> $realFuelData")
+                                    fuelList.add(indexOfFuelData,realFuelData.toString())
+                                    if(indexOfFuelData > 0){
+                                        var record = (fuelList[indexOfFuelData-1].toDouble() - realFuelData)
                                         if(record > 0){
                                             //fuel consume
-                                            if (maxFuel < record){
-                                                maxFuel = record
-                                            }
-                                            average = String.format("%.2f", record)
-                                            fuelConsumeList.add(j, String.format("%.2f", record))
-                                            j++
+//                                            average = String.format("%.2f", record)
+                                            fuelConsumeList.add(indexOfConsumptionData, String.format("%.2f", record))
+                                            indexOfConsumptionData++
                                         }
                                         // refuel next-current
-                                        record = (v - fuelList[i-1].toDouble())
-
+                                        record = (realFuelData - fuelList[indexOfFuelData-1].toDouble())
                                         if(record > 0) {
                                             //refuel
-                                            refuelList.add(k, String.format("%.2f", record))
-                                            k++
+                                            refuelList.add(indexOfRefuelData, String.format("%.2f", record))
+                                            indexOfRefuelData++
                                         }
                                     }
-
-                                    i++
+                                    indexOfFuelData++
                                 }
                             }
                             cursor += len - 2
                             cursor += 4
-                            Log.i(TAG,"processFuelData cursor --->${cursor}")
+//                            Log.i(TAG,"processFuelData cursor --->${cursor}")
                         }
                     }
                     Log.i(TAG,"processFuelData fuelList All data --->${fuelList}")
-                    Log.i(TAG, "onNotificationReceived: max-> $maxFuel fuel ->${fuelList.size} fuel consume ${fuelConsumeList.size}  refuel ${refuelList.size}")
-                    setAverageOil(average)
-//                    if (maxFuel > 5.0){
-//                        database.deviceDao().insertStatusAndAverage(id, "异常", average)
-//                        fuelStatusLiveData.postValue("异常")
-//                    }else {
-//                        database.deviceDao().insertStatusAndAverage(id, "正常", average)
-//                        fuelStatusLiveData.postValue("正常")
-//                    }
+//                    Log.i(TAG, "onNotificationReceived: max-> $maxFuel fuel ->${fuelList.size} fuel consume ${fuelConsumeList.size}  refuel ${refuelList.size}")
+//                    setAverageOil(average)
+
                     var isNormal = true
                     val threshold = getThreshold()
                     var indexForException = 0
@@ -424,18 +428,17 @@ class HomeViewModel @Inject constructor(
                             }
                         }
                     }
+                    val averageConsumption = fuelConsumeList.last()
                     if (isNormal){
-                        database.deviceDao().insertStatusAndAverage(id, "正常", average)
+                        database.deviceDao().insertStatusAndAverage(id, "正常", averageConsumption)
                         fuelStatusLiveData.postValue("正常")
                     }else{
-                        database.deviceDao().insertStatusAndAverage(id, "异常", average)
+                        database.deviceDao().insertStatusAndAverage(id, "异常", averageConsumption)
                         fuelStatusLiveData.postValue("异常")
                     }
-
                     fuelLiveData.postValue(fuelList)
 
                     val dataList = arrayListOf<Fuel>()
-
                     for (i in 0 until fuelList.size){
                         dataList.add(Fuel(i,id,fuelList[i]))
                     }
@@ -450,6 +453,9 @@ class HomeViewModel @Inject constructor(
                     val refuelDataList = arrayListOf<Refuel>()
                     for (i in 0 until refuelList.size){
                         refuelDataList.add(Refuel(i,id,refuelList[i]))
+                    }
+                    if (fuelConsumeList.size > 0){
+                        averageFuelConsumeLiveData.postValue(fuelConsumeList.last())
                     }
                     database.refuelDataDao().insertRefuelData(refuelDataList)
                     tipLiveData.postValue("process")
@@ -581,8 +587,41 @@ class HomeViewModel @Inject constructor(
                 fuelLiveData.postValue(fuelList)
                 val device = database.deviceDao().getDevice(id)
                 if (device != null){
-                    fuelStatusLiveData.postValue(device.status)
-                    averageFuelConsumeLiveData.postValue(device?.average)
+                    val consumeModelList = database.fuelConsuemDataDao().getFuelConsumeData(id)
+                    val fuelConsumeList = ArrayList<String>()
+                    for (element in consumeModelList){
+                        element.capacity?.let { fuelConsumeList.add(it) }
+                        Log.i(TAG, "consumeModelList: --> ${element.capacity}")
+                    }
+                    if (fuelConsumeList.size > 0){
+                        var isNormal = true
+                        val threshold = getThreshold()
+                        var indexForException = 0
+
+                        if (fuelConsumeList.size > 50){
+                            indexForException = fuelConsumeList.size - 50
+                        }else{
+                            indexForException = 0
+                        }
+
+                        for (index in indexForException until fuelConsumeList.size){
+                            val firstConsumptionData = fuelConsumeList[index]
+                            if (firstConsumptionData.toDouble() > threshold){
+                                isNormal = false
+                                break
+                            }
+                        }
+
+                        val averageConsumption = fuelConsumeList.last()
+                        if (isNormal){
+                            database.deviceDao().insertStatusAndAverage(id, "正常", averageConsumption)
+                            fuelStatusLiveData.postValue("正常")
+                        }else{
+                            database.deviceDao().insertStatusAndAverage(id, "异常", averageConsumption)
+                            fuelStatusLiveData.postValue("异常")
+                        }
+                        averageFuelConsumeLiveData.postValue(averageConsumption)
+                    }
                 }
             }
         }

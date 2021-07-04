@@ -1,25 +1,20 @@
 package com.example.oilchecker.fragment
 
-import android.app.AlertDialog
-import android.graphics.Color
-import android.graphics.drawable.Drawable
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavDirections
 import androidx.navigation.findNavController
 import com.example.oilchecker.R
 import com.example.oilchecker.databinding.HomeFragmentBinding
-import com.example.oilchecker.util.SpUtils
+import com.example.oilchecker.util.CustomMarkerView
+import com.example.oilchecker.util.clickWithTrigger
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -34,7 +29,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
     companion object {
         fun newInstance() = HomeFragment()
     }
-    private lateinit var fragmentHomeFragmentBinding: HomeFragmentBinding
+    private lateinit var binding: HomeFragmentBinding
     private lateinit var viewModel: HomeViewModel
     private var currentDevice: String = ""
     private var type: String = ""
@@ -49,31 +44,60 @@ class HomeFragment : Fragment(), View.OnClickListener{
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val binding = HomeFragmentBinding.bind(view)
-        fragmentHomeFragmentBinding = binding
-        fragmentHomeFragmentBinding.tvCarNum.setOnClickListener(this)
-        fragmentHomeFragmentBinding.llSync.setOnClickListener(this)
-        fragmentHomeFragmentBinding.ivSync.setOnClickListener(this)
-        fragmentHomeFragmentBinding.tvSync.setOnClickListener(this)
-        fragmentHomeFragmentBinding.tvRealStatus.text = getString(R.string.unknown)
-        type = getString(R.string.day)
-        fragmentHomeFragmentBinding.segmented {
-            initialCheckedIndex = 0
+        binding = HomeFragmentBinding.bind(view)
+        binding.tvCarNum.setOnClickListener(this)
+
+        var customMarkerView =
+            CustomMarkerView(
+                context,
+                R.layout.custom_maker_view_layout
+            )
+        customMarkerView.chartView = binding.lineChart
+        binding.lineChart.marker = customMarkerView
+
+        binding.llSync.clickWithTrigger {
+            val mac = HomeViewModel.getMac()
+            binding.progressBar.visibility = View.VISIBLE
+            lifecycleScope.launch {
+                if (mac != null && mac.isNotEmpty()) {
+                    //get fuel history data
+                    Log.i(TAG, "onClick: -->connect $mac")
+                    viewModel.doConnect(mac)
+                } else {
+                    binding.progressBar.visibility = View.INVISIBLE
+                    Toast.makeText(context, R.string.add_device, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        binding.tvRealStatus.text = getString(R.string.unknown)
+        val segmentIndex = HomeViewModel.getSegmentIndex()
+        if (segmentIndex == 0){
+            type = getString(R.string.day)
+        }else{
+            type = getString(R.string.week)
+        }
+        binding.segmented {
+            initialCheckedIndex = segmentIndex
             onSegmentChecked { segment ->
                 type = segment.text.toString()
+                if (type == getString(R.string.day)){
+                    HomeViewModel.setSegmentIndex(0)
+                }else{
+                    HomeViewModel.setSegmentIndex(1)
+                }
                 createChart()
                 Log.i(TAG, "onViewCreated: checked ${segment.text} $initialCheckedIndex") }
             onSegmentRechecked { segment -> Log.i(TAG, "onViewCreated: rechecked") }
             onSegmentUnchecked { segment -> Log.i(TAG, "onViewCreated: unchecked")}
         }
         viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-//        Log.i(TAG, "onViewCreated: ${HomeViewModel.getAverageOil()}  --> ${HomeViewModel.getStatus()}")
 
         viewModel.averageFuelConsumeLiveData.observe(viewLifecycleOwner, {
             if (it.isEmpty()){
-                fragmentHomeFragmentBinding.tvAverage.text = "0.0 L"
+                binding.tvAverage.text = "0.0 L"
             }else {
-                fragmentHomeFragmentBinding.tvAverage.text = "$it L"
+                binding.tvAverage.text = "$it L"
             }
         })
 
@@ -81,50 +105,49 @@ class HomeFragment : Fragment(), View.OnClickListener{
             val txt: String
             if(it.equals("异常")){
                 txt = getString(R.string.exception)
-                fragmentHomeFragmentBinding.tvRealStatus.setTextColor(resources.getColor(R.color.red))
+                binding.tvRealStatus.setTextColor(resources.getColor(R.color.red))
             }else if(it.equals("正常")){
                 txt = getString(R.string.normal)
-                fragmentHomeFragmentBinding.tvRealStatus.setTextColor(resources.getColor(R.color.theme))
+                binding.tvRealStatus.setTextColor(resources.getColor(R.color.theme))
             }else{
                 txt = getString(R.string.unknown)
-                fragmentHomeFragmentBinding.tvRealStatus.setTextColor(resources.getColor(R.color.theme))
-                fragmentHomeFragmentBinding.tvAverage.text = "0.0 L"
+                binding.tvRealStatus.setTextColor(resources.getColor(R.color.theme))
+                binding.tvAverage.text = "0.0 L"
             }
-            fragmentHomeFragmentBinding.tvRealStatus.text = txt
+            binding.tvRealStatus.text = txt
         })
 
         viewModel.tipLiveData.observe(viewLifecycleOwner, {
             when(it) {
                 "request" -> {
-                  //  fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.request_successfully, Toast.LENGTH_SHORT).show()
                 }
                 "requestFuelData" -> {
-                       fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
+                    binding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.updating_data, Toast.LENGTH_SHORT).show()
                 }
                 "rev" -> {
-                    fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
+                    binding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.parsing_data, Toast.LENGTH_SHORT).show()
                 }
                 "process" -> {
-                    fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+                    binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.processing_completed, Toast.LENGTH_SHORT).show()
                 }
                 "fail" -> {
-                    fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+                    binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
                 }
                 "connectionfail" -> {
-                    fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+                    binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.connect_fail, Toast.LENGTH_SHORT).show()
                 }
                 "writeDatafail" -> {
-                    fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+                    binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
                 }
                 "disconnect" -> {
-                    fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+                    binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.disconnect, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -132,11 +155,13 @@ class HomeFragment : Fragment(), View.OnClickListener{
         viewModel.fuelLiveData.observe(viewLifecycleOwner, Observer {
             lineEntry.clear()
             Log.i(TAG, "createChart: list ${it.size}")
+            Log.i(TAG, "createChart: list type ----->  ${type}")
             val size = it.size
             if (size > 0){
-                fragmentHomeFragmentBinding.placeholder1.visibility = View.GONE
+                binding.placeholder1.visibility = View.GONE
                 var index = 0
                 var fuelDatasList = ArrayList<String>()
+
                 if (type == getString(R.string.day)){
                     if (size >=  30) {
                         index = size - 30
@@ -164,7 +189,8 @@ class HomeFragment : Fragment(), View.OnClickListener{
                     if (i < fuelDatasList.size - 2) {
                         val data = fuelDatasList[i]
                         val nextData = fuelDatasList[i+1]
-                        if (data.toFloat() - nextData.toFloat() > 5){
+                        val thesholds = HomeViewModel.getThreshold()
+                        if (data.toFloat() - nextData.toFloat() > thesholds.toFloat()){
                             Log.i(TAG,"Data ${data}, nextData ${nextData}")
                             lineEntry.add(Entry(i.toFloat(),data.toFloat(), getResources().getDrawable(R.drawable.icon_warning)))
                         }else{
@@ -183,14 +209,17 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 linedataset.fillColor = resources.getColor(R.color.theme)
                 linedataset.fillAlpha = 80
                 linedataset.valueTextSize = 0f
+//                linedataset.setDrawValues(true)
+
 
                 val data = LineData(linedataset)
-                fragmentHomeFragmentBinding.lineChart.description.isEnabled = false
-                fragmentHomeFragmentBinding.lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-                fragmentHomeFragmentBinding.lineChart.axisRight.isEnabled = false
-                fragmentHomeFragmentBinding.lineChart.data = data
-                fragmentHomeFragmentBinding.lineChart.setBackgroundColor(resources.getColor(R.color.white))
-                fragmentHomeFragmentBinding.lineChart.animateXY(30, 30)
+                binding.lineChart.description.isEnabled = false
+                binding.lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+                binding.lineChart.axisRight.isEnabled = false
+                binding.lineChart.data = data
+                binding.lineChart.setBackgroundColor(resources.getColor(R.color.white))
+                binding.lineChart.animateXY(30, 30)
+
             }
 
         })
@@ -208,7 +237,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
         Log.i(TAG, "onResume:")
         currentDevice = HomeViewModel.getDevice().toString()
         if(currentDevice.isNotEmpty()){
-            fragmentHomeFragmentBinding.tvCarNum.text = currentDevice
+            binding.tvCarNum.text = currentDevice
             createChart()
             //fragmentHomeFragmentBinding.tvCarNum.setTextColor(resources.getColor(R.color.black))
         }
@@ -225,19 +254,19 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 }
                 v.findNavController().navigate(direction)
             }
-            R.id.iv_sync, R.id.tv_sync ->{
-                val mac = HomeViewModel.getMac()
-                fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
-                lifecycleScope.launch {
-                    if (mac != null && mac.isNotEmpty()) {
-                        //get fuel history data
-                        Log.i(TAG, "onClick: -->connect $mac")
-                        viewModel.doConnect(mac)
-                    } else {
-                        Toast.makeText(context, R.string.add_device, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
+//            R.id.iv_sync, R.id.tv_sync ->{
+//                val mac = HomeViewModel.getMac()
+//                fragmentHomeFragmentBinding.progressBar.visibility = View.VISIBLE
+//                lifecycleScope.launch {
+//                    if (mac != null && mac.isNotEmpty()) {
+//                        //get fuel history data
+//                        Log.i(TAG, "onClick: -->connect $mac")
+//                        viewModel.doConnect(mac)
+//                    } else {
+//                        Toast.makeText(context, R.string.add_device, Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//            }
         }
     }
 
@@ -247,6 +276,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
 
     override fun onStop() {
         super.onStop()
-        fragmentHomeFragmentBinding.progressBar.visibility = View.INVISIBLE
+        binding.progressBar.visibility = View.INVISIBLE
     }
 }

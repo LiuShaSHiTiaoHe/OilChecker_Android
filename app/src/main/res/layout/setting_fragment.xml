@@ -126,6 +126,7 @@
             android:layout_gravity="center"/>
     </LinearLayout>
     <TextView
+        android:id="@+id/tv_line_third"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="15dp"
@@ -133,5 +134,35 @@
         android:layout_marginEnd="15dp"
         android:background="@color/gray"
         app:layout_constraintTop_toBottomOf="@id/ll_search"/>
+    <LinearLayout
+        android:id="@+id/ll_setting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_line_third">
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/iocn_threshold"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:textColor="@color/black"
+            android:text="@string/setting_threshold"
+            android:textSize="16sp"
+            android:layout_gravity="center"/>
+    </LinearLayout>
+    <TextView
+        android:id="@+id/tv_line_tourth"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
+        android:background="@color/gray"
+        app:layout_constraintTop_toBottomOf="@id/ll_setting"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

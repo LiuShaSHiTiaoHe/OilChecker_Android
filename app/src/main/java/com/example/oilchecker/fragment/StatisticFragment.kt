@@ -13,6 +13,7 @@ import com.example.oilchecker.R
 import com.example.oilchecker.data.entity.FuelConsume
 import com.example.oilchecker.data.entity.Refuel
 import com.example.oilchecker.databinding.StatisticFragmentBinding
+import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.*
@@ -66,26 +67,12 @@ class StatisticFragment : Fragment(), View.OnClickListener{
 
     fun createFuelChart(){
         val lineEntry = ArrayList<BarEntry>()
-       /* lineEntry.add(BarEntry(10f, 10f))
-        lineEntry.add(BarEntry(12f, 20f))
-        lineEntry.add(BarEntry(20f, 30f))
-        lineEntry.add(BarEntry(25f, 5f))
-        lineEntry.add(BarEntry(30f, 10f))*/
-
         val id = HomeViewModel.getIdentify()
         if (id != null) {
             viewModel.getFuelConsume(id)
             viewModel.getRefuelData(id)
         }
 
-      /*  val linedataset = BarDataSet(lineEntry, "consume")
-        linedataset.color = resources.getColor(R.color.red)
-
-        val data = BarData(linedataset)
-        statisticFragmentBinding.chartFuel.data = data
-        statisticFragmentBinding.chartFuel.setBackgroundColor(resources.getColor(R.color.white))
-        statisticFragmentBinding.chartFuel.animateXY(30, 30)
-*/
         viewModel.fuelConsumeLiveData.observe(viewLifecycleOwner, Observer {
             lineEntry.clear()
             Log.i(TAG, "createChart: list ${it.size}")
@@ -100,13 +87,20 @@ class StatisticFragment : Fragment(), View.OnClickListener{
                         lineEntry.add(BarEntry(i.toFloat(), value.toFloat()))
                     }
                 }
-                val linedataset = BarDataSet(lineEntry, "consume")
+                val linedataset = BarDataSet(lineEntry, resources.getString(R.string.fuel_record))
                 linedataset.color = resources.getColor(R.color.red)
 
                 val data = BarData(linedataset)
                 statisticFragmentBinding.chartFuel.data = data
 
+                val thesholds = HomeViewModel.getThreshold()
+                val limit = LimitLine(thesholds.toFloat())
+                limit.lineColor = resources.getColor(R.color.theme)
+                limit.enableDashedLine(25F,5F,1F)
+
                 statisticFragmentBinding.chartFuel.description.isEnabled = false
+                statisticFragmentBinding.chartFuel.axisLeft.addLimitLine(limit)
+                statisticFragmentBinding.chartFuel.axisLeft.axisMinimum = 0.0F
                 statisticFragmentBinding.chartFuel.xAxis.position = XAxis.XAxisPosition.BOTTOM
                 statisticFragmentBinding.chartFuel.axisRight.isEnabled = false
                 statisticFragmentBinding.chartFuel.setBackgroundColor(resources.getColor(R.color.white))
@@ -124,20 +118,6 @@ class StatisticFragment : Fragment(), View.OnClickListener{
 
     fun createRefuelChart(){
         val lineEntry = ArrayList<BarEntry>()
-       /* lineEntry.add(BarEntry(6f, 10f))
-        lineEntry.add(BarEntry(12f, 20f))
-        lineEntry.add(BarEntry(13f, 4f))
-        lineEntry.add(BarEntry(25f, 15f))
-        lineEntry.add(BarEntry(30f, 10f))*/
-
-        /*val linedataset = BarDataSet(lineEntry, "refuel")
-        linedataset.color = resources.getColor(R.color.theme)
-
-        val data = BarData(linedataset)
-        statisticFragmentBinding.chartRefuel.data = data
-        statisticFragmentBinding.chartRefuel.setBackgroundColor(resources.getColor(R.color.white))
-        statisticFragmentBinding.chartRefuel.animateXY(30, 30)
-*/
         viewModel.refuelLiveData.observe(viewLifecycleOwner, Observer {
             lineEntry.clear()
             Log.i(TAG, "createChart: list ${it.size}")
@@ -152,12 +132,13 @@ class StatisticFragment : Fragment(), View.OnClickListener{
                         lineEntry.add(BarEntry(i.toFloat(), value.toFloat()))
                     }
                 }
-                val linedataset = BarDataSet(lineEntry, "refuel")
+                val linedataset = BarDataSet(lineEntry, resources.getString(R.string.refuel_record))
                 linedataset.color = resources.getColor(R.color.theme)
+
 
                 val data = BarData(linedataset)
                 statisticFragmentBinding.chartRefuel.data = data
-
+                statisticFragmentBinding.chartRefuel.axisLeft.axisMinimum = 0.0F
                 statisticFragmentBinding.chartRefuel.description.isEnabled = false
                 statisticFragmentBinding.chartRefuel.xAxis.position = XAxis.XAxisPosition.BOTTOM
                 statisticFragmentBinding.chartRefuel.axisRight.isEnabled = false

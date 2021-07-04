@@ -10,6 +10,18 @@ class MainApplication : Application(){
     companion object {
         lateinit var rxBleClient: RxBleClient
         private set
+
+        private var instances: MainApplication? = null
+        fun getInstance(): MainApplication {
+            if (instances == null) {
+                synchronized(MainApplication::class.java) {
+                    if (instances == null) {
+                        instances = MainApplication()
+                    }
+                }
+            }
+            return instances!!
+        }
     }
 
     override fun onCreate() {
@@ -17,6 +29,7 @@ class MainApplication : Application(){
       //  rxBleClient = RxBleClient.create(this)
         rxBleClient = RxBleClient.create(this)
         MMKV.initialize(this)
+        instances = this
 
     }
 }

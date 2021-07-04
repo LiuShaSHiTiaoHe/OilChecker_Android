@@ -49,6 +49,13 @@
     <string name="connect_successful">连接成功</string>
     <string name="connect_fail">连接设备失败</string>
 
+    <!-- 设置油量预警阀值 -->
+    <string name="setting_threshold">设置预警阀值</string>
+    <string name="inputErrorData">设置的参数格式不正确</string>
+    <string name="setAppParamatersSuccess">设置成功</string>
+
+
+    <!-- 同步油量数据提示语句 -->
     <string name="parsing_data">油量数据已经传输完成,处理数据中...</string>
     <string name="updating_data">正在同步油量数据,请耐心等待...</string>
     <string name="processing_completed">油量数据处理完成</string>
@@ -57,7 +64,6 @@
     <string name="set_dev_fail">设备参数设置失败</string>
     <string name="sync_fail">同步失败，请重试</string>
     <string name="disconnect">连接已断开</string>
-
 
 
 

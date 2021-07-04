@@ -39,6 +39,7 @@ class SettingFragment : Fragment(), View.OnClickListener {
         settingFragmentBinding.llDevices.setOnClickListener(this)
         settingFragmentBinding.llList.setOnClickListener(this)
         settingFragmentBinding.llSearch.setOnClickListener(this)
+        settingFragmentBinding.llSetting.setOnClickListener(this)
 
         currentDevice = HomeViewModel.getDevice().toString()
         val height = dp2px(context, 1)
@@ -90,6 +91,11 @@ class SettingFragment : Fragment(), View.OnClickListener {
                 val direction = SettingFragmentDirections.actionSettingFragmentToBleDeviceFragment()
                 v.findNavController().navigate(direction)
             }
+            R.id.ll_setting ->{
+                val direction = SettingFragmentDirections.actionSettingFragmentToSettingappparamatersFragment()
+                v.findNavController().navigate(direction)
+            }
+
         }
     }
 

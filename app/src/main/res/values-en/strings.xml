@@ -43,6 +43,14 @@
     <string name="device_list">Device List</string>
     <string name="add">Add</string>
 
+
+    <!-- 设置油量预警阀值 -->
+    <string name="setting_threshold">Setting Consumption Threshold</string>
+    <string name="inputErrorData">Unexpected Paramaters</string>
+    <string name="setAppParamatersSuccess">Setting Success</string>
+
+
+
     <string name="ble_not_available">Bluetooth is not available</string>
     <string name="open_ble">Enable bluetooth and try again</string>
     <string name="location_permission_missing">On Android 6.0 location permission is required</string>

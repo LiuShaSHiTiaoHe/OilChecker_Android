@@ -44,6 +44,9 @@
         <action
             android:id="@+id/action_setting_fragment_to_selectCarFragment"
             app:destination="@id/selectCarFragment" />
+        <action
+            android:id="@+id/action_setting_fragment_to_settingappparamatersFragment"
+            app:destination="@id/settingappparamatersFragment" />
     </fragment>
     <fragment
         android:id="@+id/selectCarFragment"
@@ -95,4 +98,9 @@
             app:popUpTo="@id/home_fragment"
             app:popUpToInclusive="true"/>
     </fragment>
+    <fragment
+        android:id="@+id/settingappparamatersFragment"
+        android:name="com.example.oilchecker.fragment.SettingAppParametersFragment"
+        android:label="setting_app_paramaters"
+        tools:layout="@layout/fragment_setting_app_parameters"/>
 </navigation>

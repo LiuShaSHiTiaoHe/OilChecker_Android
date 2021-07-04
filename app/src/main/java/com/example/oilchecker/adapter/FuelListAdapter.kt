@@ -27,9 +27,12 @@ class FuelListAdapter: RecyclerView.Adapter<FuelListAdapter.ViewHolder>(){
                 tvName.text =  context?.getString(R.string.fuel_record)
                 tvId.text = data.deviceId
                 tvNum.text = data.id.toString()
-                tvVolume.text = data.capacity
                 if (data.capacity!!.toDouble() > HomeViewModel.getThreshold()){
                     tvVolume.setTextColor(context!!.resources.getColor(R.color.red))
+                    tvVolume.text = data.capacity + " (" + context?.getString(R.string.exception) + ")"
+                }else {
+                    tvVolume.setTextColor(context!!.resources.getColor(R.color.theme))
+                    tvVolume.text = data.capacity
                 }
                 Log.i("SelectCarFragment", "bind: ${data.capacity}")
             }
