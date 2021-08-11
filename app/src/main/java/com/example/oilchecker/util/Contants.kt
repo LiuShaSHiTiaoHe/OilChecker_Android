@@ -13,3 +13,9 @@ class Contants {
     }
 
 }
+
+enum class BleSendDataState{
+    SendRequestDeviceInfo,
+    SendSyncDeviceTime,
+    SendRequstFuelData,
+}

@@ -70,95 +70,24 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/ll_state"
+            android:id="@+id/segmentedBack"
             android:layout_width="0dp"
-            android:layout_height="102dp"
+            android:layout_height="90dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="15dp"
             android:layout_marginEnd="8dp"
             android:orientation="vertical"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/gl_v5"
-            app:layout_constraintTop_toBottomOf="@id/tv_car_num"
-            android:background="@drawable/bg_rectangle_white">
-
-            <TextView
-                android:id="@+id/tv_state"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="6dp"
-                android:text="@string/oil_state"
-                android:textColor="@color/black"
-                android:background="@color/white"/>
-            <TextView
-                android:id="@+id/tv_real_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/unknown"
-                android:textColor="@color/theme"
-                android:textSize="20sp"
-                android:layout_marginTop="26dp"
-                android:layout_marginEnd="6dp"
-                android:layout_gravity="end"
-                />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="102dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="15dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical"
-            app:layout_constraintStart_toStartOf="@id/gl_v5"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_car_num"
-            android:background="@drawable/bg_rectangle_white">
-
-            <TextView
-                android:id="@+id/tv_average_oil"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="6dp"
-                android:text="@string/average_fuel"
-                android:textColor="@color/black"
-                android:background="@color/white"/>
-            <TextView
-                android:id="@+id/tv_average"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0.0L"
-                android:textColor="@color/theme"
-                android:textSize="20sp"
-                android:layout_marginTop="26dp"
-                android:layout_marginEnd="6dp"
-                android:layout_gravity="right"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/ll_display"
-            android:layout_width="0dp"
-            android:layout_height="372dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="15dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/ll_state"
+            android:gravity="center"
+            android:background="@drawable/bg_rectangle_white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:background="@drawable/bg_rectangle_white">
+            app:layout_constraintTop_toBottomOf="@id/ll_sync">
             <com.creageek.segmentedbutton.SegmentedButton
                 android:id="@+id/segmented"
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:layout_marginEnd="30dp"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="5dp"
                 android:layout_marginStart="30dp"
                 android:padding="2dp"
                 android:orientation="horizontal"
@@ -182,27 +111,236 @@
                     android:text="@string/week"
                     android:textSize="16sp"
                     android:gravity="center_vertical"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/month"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/year"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"/>
             </com.creageek.segmentedbutton.SegmentedButton>
-            <ImageView
-                android:id="@+id/placeholder1"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:layout_marginTop="35dp"
-                android:background="@drawable/empty"
-                android:layout_gravity="center_horizontal"
-                app:layout_constraintTop_toBottomOf="@id/segmented"/>
-
-
-            <com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/line_chart"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="270dp"
-                android:layout_marginTop="15dp"
-                android:layout_marginStart="15dp"
-                android:layout_marginEnd="15dp"
-                android:background="@drawable/empty"
-                app:layout_constraintTop_toBottomOf="@id/segmented"/>
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="5dp"
+                >
+                <ImageView
+                    android:id="@+id/leftButton"
+                    android:layout_width="30dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginVertical="10dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/centerTime"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp"
+                    android:layout_marginVertical="10dp"
+                    app:layout_constraintStart_toEndOf="@+id/leftButton"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/rightButton">
+                </TextView>
+                <ImageView
+                    android:id="@+id/rightButton"
+                    android:layout_width="30dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginVertical="10dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+                </ImageView>
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/tips_module_statistics"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            app:layout_constraintTop_toBottomOf="@+id/segmentedBack"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_rectangle_white"
+            >
+            <TextView
+                android:id="@+id/title_statistics"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:gravity="center"
+                android:text="统计"
+                app:layout_constraintTop_toTopOf="parent"
+                ></TextView>
+            <LinearLayout
+                android:id="@+id/tips_refuel_record"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                app:layout_constraintTop_toBottomOf="@+id/title_statistics"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    ></ImageView>
+                <TextView
+                    android:layout_width="120dp"
+                    android:layout_height="20dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="5dp"
+                    android:text="加油记录"></TextView>
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="50dp"
+                    ></TextView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tips_refuel_total"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                app:layout_constraintTop_toBottomOf="@+id/tips_refuel_record"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    ></ImageView>
+                <TextView
+                    android:layout_width="120dp"
+                    android:layout_height="20dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="5dp"
+                    android:text="累计加油"></TextView>
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="50dp"
+                    ></TextView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tips_unusual_record"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                app:layout_constraintTop_toBottomOf="@+id/tips_refuel_total"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    ></ImageView>
+                <TextView
+                    android:layout_width="120dp"
+                    android:layout_height="20dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="5dp"
+                    android:text="异常记录"></TextView>
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="50dp"
+                    ></TextView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tips_unusual_fuel_record"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                app:layout_constraintTop_toBottomOf="@+id/tips_unusual_record"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    ></ImageView>
+                <TextView
+                    android:layout_width="120dp"
+                    android:layout_height="20dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="5dp"
+                    android:text="异常油量"></TextView>
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="50dp"
+                    ></TextView>
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/tips_module_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_rectangle_white"
+            app:layout_constraintTop_toBottomOf="@+id/tips_module_statistics">
+
+            <TextView
+                android:id="@+id/title_detial"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:gravity="center"
+                android:text="详细"
+                app:layout_constraintTop_toTopOf="parent"
+                ></TextView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFuel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="vertical"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="20dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title_detial"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -212,7 +350,7 @@
             android:visibility="invisible"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/ll_display"/>
+            app:layout_constraintBottom_toTopOf="@id/segmentedBack"/>
 
 
         <androidx.constraintlayout.widget.Guideline
