@@ -306,3 +306,16 @@ fun Long.toCustomDate(timeZoneInt: Int): Long {
     val localStr = localSdf.format(utcD.time)
     return localStr.toDateLong(pattern)
 }
+
+
+fun getFirstDayOfWeek(): Date {
+    val calendar = Calendar.getInstance()
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.clear(Calendar.MINUTE)
+    calendar.clear(Calendar.SECOND)
+    calendar.clear(Calendar.MILLISECOND)
+    calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek())
+    return  calendar.time
+
+
+}

@@ -505,7 +505,7 @@ class HomeViewModel @Inject constructor(
         val segmentIndex = getSegmentIndex()
         val today = Dates.today
         val currentTimeInterval = today.toString("yyyy-MM-dd HH:mm:ss").toDateLong()
-        val startOfWeek = today
+        val startOfWeek = getFirstDayOfWeek()
         val endOfWeek = today + 1.week
         val startOfMonth = today.beginningOfMonth
         val endOfMonth = today.endOfMonth
