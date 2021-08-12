@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
+import android.icu.util.LocaleData
 import android.text.Editable
 import android.util.Log
 import android.widget.Toast
@@ -17,10 +18,7 @@ import com.example.oilchecker.data.entity.Fuel
 import com.example.oilchecker.data.entity.FuelConsume
 import com.example.oilchecker.data.entity.Refuel
 import com.example.oilchecker.di.DatabaseModel
-import com.example.oilchecker.util.BleSendDataState
-import com.example.oilchecker.util.Contants
-import com.example.oilchecker.util.SpUtils
-import com.example.oilchecker.util.toDateLong
+import com.example.oilchecker.util.*
 import com.polidea.rxandroidble2.NotificationSetupMode
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
@@ -35,13 +33,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
-import khronos.minutes
-import khronos.plus
-import khronos.toDate
-import khronos.toString
+import khronos.*
 import kotlinx.coroutines.*
 import java.lang.StringBuilder
-import java.time.LocalDate
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
@@ -62,7 +57,8 @@ class HomeViewModel @Inject constructor(
     private var isRequestFuelData = false
     private var receiveFuelData: String = ""
 
-    var fuelLiveData = MutableLiveData<ArrayList<String>>()
+//    var fuelLiveData = MutableLiveData<ArrayList<String>>()
+    var fuelLiveData = MutableLiveData<ArrayList<Map<String, String>>>()
     var averageFuelConsumeLiveData = MutableLiveData<String>()
     var fuelStatusLiveData = MutableLiveData<String>()
     var tipLiveData = MutableLiveData<String>()
@@ -124,7 +120,7 @@ class HomeViewModel @Inject constructor(
         fun getSegmentIndex(): Int{
             val value = SpUtils.getInt("segmentIndex")
             if (value == null){
-                return  0
+                return  2
             }else{
                 return  value
             }
@@ -505,6 +501,26 @@ class HomeViewModel @Inject constructor(
 
     }
 
+    fun getTimeRange() : List<String>{
+        val segmentIndex = getSegmentIndex()
+        val today = Dates.today
+        val currentTimeInterval = today.toString("yyyy-MM-dd HH:mm:ss").toDateLong()
+        val startOfWeek = today
+        val endOfWeek = today + 1.week
+        val startOfMonth = today.beginningOfMonth
+        val endOfMonth = today.endOfMonth
+        val startOfYear = today.beginningOfYear
+        val endOfYear = today.endOfYear
+
+
+
+        var startDate: String = ""
+        var endDate: String = ""
+        when (segmentIndex){
+            0 -> startDate =
+        }
+
+    }
     //从数据库 获取油量数据
     fun getFuelData(){
         viewModelScope.launch {
@@ -564,14 +580,18 @@ class HomeViewModel @Inject constructor(
             async(Dispatchers.IO) {
                 val id = getIdentify() ?: return@async
                 val device = database.deviceDao().getDevice(id)
+                val testTimeString = "202107291209"
                 if (device != null){
                     val length = device.length.toInt()
                     val width = device.width.toInt()
 
-                    val fuelList = ArrayList<String>()
-                    val fuelConsumeList = ArrayList<String>()
-                    val refuelList = ArrayList<String>()
+//                    val fuelList = ArrayList<String>()
+//                    val fuelConsumeList = ArrayList<String>()
+//                    val refuelList = ArrayList<String>()
+
                     var newFuelList = ArrayList<Map<String, String>>()
+                    var newFuelConsumeList = ArrayList<Map<String, String>>()
+                    var newRefuelList = ArrayList<Map<String, String>>()
 
                     var isContinue = true
                     var bigToLittelEnd = StringBuilder()
@@ -594,30 +614,31 @@ class HomeViewModel @Inject constructor(
                         if (firstDataByte == "FF") {//数据区第一个字节为FF表示 传输结束
                             isContinue = false
                         } else {
-                            var isTimeDataFlag = false
+//                            var isTimeDataFlag = false
                             for (index in 0..((len - 2)/4 - 1)) {
                                 val fuelData = receiveFuelData.substring(cursor + index*4 , cursor+ 4*(index + 1))
-                                if (isTimeDataFlag){//接收到时间信息，处理FCFF后面的时间数据 6字节 十进制
-                                    if (index < 7){
-                                        deviceTimeString = deviceTimeString + fuelData
-                                        if (index == 6){//20 + 21 + 08 + 11 + 11 + 53 + 22 = 20210811115322
-                                            deviceTimeString = "20" + deviceTimeString
-                                        }
-                                    }
-                                }
+//                                if (isTimeDataFlag){//接收到时间信息，处理FCFF后面的时间数据 6字节 十进制
+//                                    if (index < 7){
+//                                        deviceTimeString = deviceTimeString + fuelData
+//                                        if (index == 6){//20 + 21 + 08 + 11 + 11 + 53 + 22 = 20210811115322
+//                                            deviceTimeString = "20" + deviceTimeString
+//                                        }
+//                                    }
+//                                }
                                 Log.i(TAG, "processFuelData: fueldata --------------------> $fuelData")
                                 if (fuelData == "FDFF" || fuelData == "FEFF" || fuelData == "FBFF") {
                                     //过滤
                                 }else if (fuelData == "FCFF"){
-                                    //增加的时间，后面的数据都有加上时间数据，每条数据的时间间隔为2分钟
-                                    isTimeDataFlag = true
-                                    deviceTimeString = ""
+//                                    //增加的时间，后面的数据都有加上时间数据，每条数据的时间间隔为2分钟
+//                                    isTimeDataFlag = true
+//                                    deviceTimeString = ""
                                 } else{
                                     //设备时间信息之前的数据，视为无效的数据，过滤掉
-                                    if (deviceTimeString.isEmpty()){
-                                        continue
-                                    }
-                                    val date = deviceTimeString.toDate("yyyyMMddHHmmss") + 2.minutes
+//                                    if (deviceTimeString.isEmpty()){
+//                                        continue
+//                                    }
+//                                    val date = deviceTimeString.toDate("yyyyMMddHHmmss") + 2.minutes
+                                    val date = testTimeString.toDate("yyyyMMddHHmmss") + 2.minutes
                                     bigToLittelEnd.append(fuelData.substring(2,4))
                                     bigToLittelEnd.append(fuelData.substring(0,2))
                                     realHeightIntValue = bigToLittelEnd.toString().toInt(16)
@@ -625,22 +646,35 @@ class HomeViewModel @Inject constructor(
                                     val realFuelData = (realHeightIntValue.toDouble()*length * width)/1000000
                                     Log.i(TAG, "processFuelData: height:-> $realHeightIntValue   fueldata real capavity -> $realFuelData")
 
-                                    fuelList.add(indexOfFuelData,realFuelData.toString())
+//                                    fuelList.add(indexOfFuelData,realFuelData.toString())
                                     val timeInterval = date.toString("yyyy-MM-dd HH:mm:ss").toDateLong().toString()
-                                    newFuelList.add(mapOf("time" to date.toString("yyyyMMddHHmmss"),"timeInterval" to timeInterval, "fuel" to realFuelData.toString(), "index" to indexOfFuelData.toString()))
+                                    val timeFormatterString = date.toString("yyyy-MM-dd HH:mm:ss")
+                                    newFuelList.add(mapOf("time" to timeFormatterString,"timeInterval" to timeInterval, "fuel" to realFuelData.toString(), "index" to indexOfFuelData.toString()))
                                     if(indexOfFuelData > 0){
-                                        var record = (fuelList[indexOfFuelData-1].toDouble() - realFuelData)
-                                        if(record > 0){
-                                            //fuel consume
-                                            fuelConsumeList.add(indexOfConsumptionData, String.format("%.2f", record))
-                                            indexOfConsumptionData++
-                                        }
-                                        // refuel next-current
-                                        record = (realFuelData - fuelList[indexOfFuelData-1].toDouble())
-                                        if(record > 0) {
-                                            //refuel
-                                            refuelList.add(indexOfRefuelData, String.format("%.2f", record))
+//                                        var record = (fuelList[indexOfFuelData-1].toDouble() - realFuelData)
+//                                        if(record > 0){
+//                                            //fuel consume
+//                                            fuelConsumeList.add(indexOfConsumptionData, String.format("%.2f", record))
+//
+//                                            indexOfConsumptionData++
+//                                        }
+//                                        // refuel next-current
+//                                        record = (realFuelData - fuelList[indexOfFuelData-1].toDouble())
+//                                        if(record > 0) {
+//                                            //refuel
+//                                            refuelList.add(indexOfRefuelData, String.format("%.2f", record))
+//                                            indexOfRefuelData++
+//                                        }
+                                        val preFuelDataMap = newFuelList[indexOfFuelData - 1]
+                                        val changedFuelDataBetweenRecords = preFuelDataMap.get("fuel")!!.toDouble() - realFuelData
+                                        if (changedFuelDataBetweenRecords < 0){
+                                            //油量在增加，有加油的操作
+                                            newRefuelList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "refuel" to changedFuelDataBetweenRecords.toString(), "index" to indexOfRefuelData.toString()))
                                             indexOfRefuelData++
+                                        }else{
+                                            //耗油操作
+                                            newFuelConsumeList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "consumption" to changedFuelDataBetweenRecords.toString(), "index" to indexOfConsumptionData.toString()))
+                                            indexOfConsumptionData++
                                         }
                                     }
                                     indexOfFuelData++
@@ -650,57 +684,38 @@ class HomeViewModel @Inject constructor(
                             cursor += 4
                         }
                     }
-                    Log.i(TAG,"processFuelData fuelList All data --->${fuelList}")
-                    var isNormal = true
-                    val threshold = getThreshold()
-                    var indexForException = 0
+                    Log.i(TAG,"processFuelData fuelList All data --->${newFuelList}")
+                    Log.i(TAG, "processFuelData: datalist size --> ${newFuelList.size}")
 
-                    if (fuelList.size > 50){
-                        indexForException = fuelList.size - 50
-                    }else{
-                        indexForException = fuelList.size
-                    }
-                    for (index in indexForException until fuelList.size){
-                        if (index + 1 < fuelList.size - 1){
-                            val firstData = fuelList[index].toDouble()
-                            val nextData = fuelList[index+1].toDouble()
-                            if (firstData - nextData > threshold){
-                                isNormal = false
-                                break
-                            }
-                        }
-                    }
-                    val averageConsumption = fuelConsumeList.last()
-                    if (isNormal){
-                        database.deviceDao().insertStatusAndAverage(id, "正常", averageConsumption)
-                        fuelStatusLiveData.postValue("正常")
-                    }else{
-                        database.deviceDao().insertStatusAndAverage(id, "异常", averageConsumption)
-                        fuelStatusLiveData.postValue("异常")
-                    }
-                    fuelLiveData.postValue(fuelList)
 
                     val dataList = arrayListOf<Fuel>()
-                    for (i in 0 until fuelList.size){
-                        dataList.add(Fuel(i,id,fuelList[i]))//TODO：数据库改变，增加了时间字段，入库的操作
+                    for (index in 0 until newFuelList.size){
+//                        dataList.add(Fuel(i,id,fuelList[i]))TODO：数据库改变，增加了时间字段，入库的操作
+                        val fuelDataMap = newFuelList[index]
+                        dataList.add(Fuel(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
                     }
-                    Log.i(TAG, "processFuelData: datalist size --> ${dataList.size}")
                     database.fuelDataDao().insertFuelData(dataList)
 
                     val fuelConsumedataList = arrayListOf<FuelConsume>()
-                    for (i in 0 until fuelConsumeList.size){
-                        fuelConsumedataList.add(FuelConsume(i,id,fuelConsumeList[i]))
+                    for (index in 0 until newFuelConsumeList.size){
+//                        fuelConsumedataList.add(FuelConsume(i,id,fuelConsumeList[i]))
+                        val fuelDataMap = newFuelConsumeList[index]
+                        fuelConsumedataList.add(FuelConsume(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
                     }
+
                     database.fuelConsuemDataDao().insertFuelConsumeData(fuelConsumedataList)
                     val refuelDataList = arrayListOf<Refuel>()
-                    for (i in 0 until refuelList.size){
-                        refuelDataList.add(Refuel(i,id,refuelList[i]))
+                    for (index in 0 until newRefuelList.size){
+//                        refuelDataList.add(Refuel(i,id,refuelList[i]))
+                        val fuelDataMap = newRefuelList[index]
+                        refuelDataList.add(Refuel(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
                     }
-                    if (fuelConsumeList.size > 0){
-                        averageFuelConsumeLiveData.postValue(fuelConsumeList.last())
-                    }
+//                    if (fuelConsumeList.size > 0){
+//                        averageFuelConsumeLiveData.postValue(fuelConsumeList.last())
+//                    }
                     database.refuelDataDao().insertRefuelData(refuelDataList)
                     tipLiveData.postValue("process")
+                    fuelLiveData.postValue(newFuelList)
                 }
 
             }
