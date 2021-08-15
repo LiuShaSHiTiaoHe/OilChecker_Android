@@ -12,6 +12,7 @@ import com.example.oilchecker.databinding.ItemDeviceBinding
 import com.example.oilchecker.fragment.BleDeviceFragmentDirections
 import com.example.oilchecker.fragment.HomeViewModel
 import com.example.oilchecker.fragment.SelectCarFragmentDirections
+import com.example.oilchecker.util.UserPreference
 
 class DeviceListAdapter: RecyclerView.Adapter<DeviceListAdapter.ViewHolder>(){
     private var devices: ArrayList<Device> = ArrayList()
@@ -22,9 +23,9 @@ class DeviceListAdapter: RecyclerView.Adapter<DeviceListAdapter.ViewHolder>(){
                 binding.tvName.text?.let { text ->
                     //navigate to back ,set current device
 //                    HomeViewModel.setDevice(text.toString())
-                    HomeViewModel.setDevice(binding.tvRealname.text.toString())
-                    HomeViewModel.setMac(binding.tvMac.text.toString())
-                    HomeViewModel.setIdentify(binding.tvIdentify.text.toString())
+                    UserPreference.setDevice(binding.tvRealname.text.toString())
+                    UserPreference.setMac(binding.tvMac.text.toString())
+                    UserPreference.setIdentify(binding.tvIdentify.text.toString())
                     val direction = SelectCarFragmentDirections.actionSelectCarFragmentToHomeFragment()
                     it.findNavController().navigate(direction)
                 }

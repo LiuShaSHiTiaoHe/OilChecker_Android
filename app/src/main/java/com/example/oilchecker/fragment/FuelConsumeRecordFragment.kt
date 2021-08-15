@@ -16,6 +16,7 @@ import com.example.oilchecker.adapter.DeviceListAdapter
 import com.example.oilchecker.adapter.FuelListAdapter
 import com.example.oilchecker.data.entity.FuelConsume
 import com.example.oilchecker.databinding.FuelConsumeRecordFragmentBinding
+import com.example.oilchecker.util.UserPreference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 @AndroidEntryPoint
@@ -49,7 +50,7 @@ class FuelConsumeRecordFragment : Fragment(), View.OnClickListener {
             initialCheckedIndex = 0
             onSegmentChecked { segment ->
                 type = segment.text.toString()
-                val id = HomeViewModel.getIdentify()
+                val id = UserPreference.getIdentify()
                 if (id != null) {
                     statisticViewModel.getFuelConsume(id)
                 }
@@ -71,7 +72,7 @@ class FuelConsumeRecordFragment : Fragment(), View.OnClickListener {
         statisticViewModel = ViewModelProvider(this).get(StatisticViewModel::class.java)
 
         lifecycleScope.launch {
-            val id = HomeViewModel.getIdentify()
+            val id = UserPreference.getIdentify()
             if (id != null) {
                 statisticViewModel.getFuelConsume(id)
             }

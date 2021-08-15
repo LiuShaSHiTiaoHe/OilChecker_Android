@@ -1,10 +1,10 @@
-package com.example.oilchecker.data.entity
+package com.example.oilchecker.data.Dao
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.oilchecker.data.entity.Device
 
 @Dao
 interface DeviceDao {

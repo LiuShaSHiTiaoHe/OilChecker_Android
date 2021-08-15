@@ -11,6 +11,7 @@ import androidx.navigation.findNavController
 import com.example.oilchecker.R
 import com.example.oilchecker.databinding.FragmentSettingAppParametersBinding
 import com.example.oilchecker.databinding.SettingFragmentBinding
+import com.example.oilchecker.util.UserPreference
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -40,7 +41,7 @@ class SettingAppParametersFragment : Fragment(), View.OnClickListener {
         binding.llBack.setOnClickListener(this)
         binding.tvName.setOnClickListener(this)
 
-        val thresholds = HomeViewModel.getThreshold()
+        val thresholds = UserPreference.getThreshold()
         binding.etThreshold.text = Editable.Factory.getInstance().newEditable(thresholds.toString())
 
     }
@@ -56,7 +57,7 @@ class SettingAppParametersFragment : Fragment(), View.OnClickListener {
                 if (thresholds.isEmpty()){
                     Toast.makeText(context, getString(R.string.inputErrorData), Toast.LENGTH_SHORT).show()
                 }else{
-                    HomeViewModel.setThresholdValue(thresholds.toDouble())
+                    UserPreference.setThresholdValue(thresholds.toDouble())
                     Toast.makeText(context, getString(R.string.setAppParamatersSuccess), Toast.LENGTH_SHORT).show()
                     view.findNavController().navigateUp()
                 }

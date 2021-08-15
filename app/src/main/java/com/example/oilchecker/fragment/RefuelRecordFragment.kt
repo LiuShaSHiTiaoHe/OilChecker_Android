@@ -17,6 +17,7 @@ import com.example.oilchecker.adapter.RefuelListAdapter
 import com.example.oilchecker.data.entity.FuelConsume
 import com.example.oilchecker.data.entity.Refuel
 import com.example.oilchecker.databinding.RefuelRecordFragmentBinding
+import com.example.oilchecker.util.UserPreference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 @AndroidEntryPoint
@@ -50,7 +51,7 @@ class RefuelRecordFragment : Fragment(), View.OnClickListener{
             initialCheckedIndex = 0
             onSegmentChecked { segment ->
                 type = segment.text.toString()
-                val id = HomeViewModel.getIdentify()
+                val id = UserPreference.getIdentify()
                 if (id != null) {
                     statisticViewModel.getRefuelData(id)
                 }
@@ -73,7 +74,7 @@ class RefuelRecordFragment : Fragment(), View.OnClickListener{
 
         Log.i(TAG, "onViewCreated: -->")
         lifecycleScope.launch {
-            val id = HomeViewModel.getIdentify()
+            val id = UserPreference.getIdentify()
             if (id != null) {
                 statisticViewModel.getRefuelData(id)
             }

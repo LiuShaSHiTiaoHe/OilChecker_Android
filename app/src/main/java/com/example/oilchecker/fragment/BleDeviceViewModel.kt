@@ -15,6 +15,7 @@ import com.polidea.rxandroidble.scan.ScanSettings*/
 import com.example.oilchecker.data.AppDatabase
 import com.example.oilchecker.data.entity.Device
 import com.example.oilchecker.util.Contants
+import com.example.oilchecker.util.UserPreference
 import com.polidea.rxandroidble2.NotificationSetupMode
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
@@ -157,9 +158,9 @@ class BleDeviceViewModel @Inject constructor(
         viewModelScope.launch {
             async(Dispatchers.IO) {
                 database.deviceDao().insert(device)
-                HomeViewModel.setDevice(device.num.toString())
-                HomeViewModel.setMac(device.mac.toString())
-                HomeViewModel.setIdentify(device.deviceId.toString())
+                UserPreference.setDevice(device.num.toString())
+                UserPreference.setMac(device.mac.toString())
+                UserPreference.setIdentify(device.deviceId.toString())
             }
         }
     }

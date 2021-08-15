@@ -16,6 +16,7 @@ import com.example.oilchecker.databinding.ItemFuelRecordBinding
 import com.example.oilchecker.fragment.BleDeviceFragmentDirections
 import com.example.oilchecker.fragment.HomeViewModel
 import com.example.oilchecker.fragment.SelectCarFragmentDirections
+import com.example.oilchecker.util.UserPreference
 
 class FuelListAdapter: RecyclerView.Adapter<FuelListAdapter.ViewHolder>(){
     private var fuels: ArrayList<FuelConsume> = ArrayList()
@@ -27,7 +28,7 @@ class FuelListAdapter: RecyclerView.Adapter<FuelListAdapter.ViewHolder>(){
                 tvName.text =  context?.getString(R.string.fuel_record)
                 tvId.text = data.deviceId
                 tvNum.text = data.id.toString()
-                if (data.capacity!!.toDouble() > HomeViewModel.getThreshold()){
+                if (data.capacity!!.toDouble() > UserPreference.getThreshold()){
                     tvVolume.setTextColor(context!!.resources.getColor(R.color.red))
                     tvVolume.text = data.capacity + " (" + context?.getString(R.string.exception) + ")"
                 }else {

@@ -2,10 +2,11 @@ package com.example.oilchecker.di
 
 import android.content.Context
 import com.example.oilchecker.data.AppDatabase
-import com.example.oilchecker.data.entity.DeviceDao
-import com.example.oilchecker.data.entity.FuelConsumeDao
-import com.example.oilchecker.data.entity.FuelDataDao
-import com.example.oilchecker.data.entity.RefuelDao
+import com.example.oilchecker.data.Dao.DeviceDao
+import com.example.oilchecker.data.Dao.FuelConsumeDao
+import com.example.oilchecker.data.Dao.FuelDataDao
+import com.example.oilchecker.data.Dao.RefuelDao
+import com.example.oilchecker.data.Dao.FuelChangeDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +31,11 @@ class DatabaseModel {
     @Provides
     fun provideFuelDataDao(appDatabase: AppDatabase): FuelDataDao {
         return appDatabase.fuelDataDao()
+    }
+
+    @Provides
+    fun provideFuelChangedDataDao(appDatabase: AppDatabase): FuelChangeDao {
+        return appDatabase.fuelChangeDao()
     }
 
     @Provides

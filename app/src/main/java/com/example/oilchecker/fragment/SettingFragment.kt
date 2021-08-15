@@ -11,6 +11,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.navigation.findNavController
 import com.example.oilchecker.R
 import com.example.oilchecker.databinding.SettingFragmentBinding
+import com.example.oilchecker.util.UserPreference
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -41,7 +42,7 @@ class SettingFragment : Fragment(), View.OnClickListener {
         settingFragmentBinding.llSearch.setOnClickListener(this)
         settingFragmentBinding.llSetting.setOnClickListener(this)
 
-        currentDevice = HomeViewModel.getDevice().toString()
+        currentDevice = UserPreference.getDevice().toString()
         val height = dp2px(context, 1)
         val top = dp2px(context, 15)
         val margin = dp2px(context, 15)

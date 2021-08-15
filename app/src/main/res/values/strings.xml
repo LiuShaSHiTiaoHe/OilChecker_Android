@@ -27,12 +27,17 @@
     <string name="comparison_voltage">比较电压</string>
     <string name="save">保存</string>
     <string name="select">选择一辆车</string>
-    <string name="fuel_record">油耗记录</string>
+    <string name="fuel_record">油量记录</string>
+    <string name="consumption_record">油耗记录</string>
     <string name="refuel_record">加油记录</string>
     <string name="fault_list">设备故障列表</string>
     <string name="fault_record">故障记录</string>
     <string name="search">搜索设备</string>
     <string name="device_list">设备列表</string>
+
+    <string name="fuelchanged_refuel">加油</string>
+    <string name="fuelchanged_unusual">异常</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="add">添加</string>
     <string name="Edit">修改</string>

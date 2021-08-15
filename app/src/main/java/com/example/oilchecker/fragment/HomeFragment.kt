@@ -11,15 +11,18 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.oilchecker.R
+import com.example.oilchecker.adapter.HomeViewDataListAdapter
+import com.example.oilchecker.data.entity.FuelChange
 import com.example.oilchecker.databinding.HomeFragmentBinding
-import com.example.oilchecker.util.CustomMarkerView
-import com.example.oilchecker.util.clickWithTrigger
+import com.example.oilchecker.util.*
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import dagger.hilt.android.AndroidEntryPoint
+import khronos.*
 import kotlinx.coroutines.*
 
 @AndroidEntryPoint
@@ -44,11 +47,13 @@ class HomeFragment : Fragment(), View.OnClickListener{
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = HomeFragmentBinding.bind(view)
-        handleToast()
-        binding.tvCarNum.setOnClickListener(this)
+        viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
 
+        binding.tvCarNum.setOnClickListener(this)
+        binding.leftButton.setOnClickListener(this)
+        binding.rightButton.setOnClickListener(this)
         binding.llSync.clickWithTrigger {
-            val mac = HomeViewModel.getMac()
+            val mac = UserPreference.getMac()
             binding.progressBar.visibility = View.VISIBLE
             lifecycleScope.launch {
                 if (mac != null && mac.isNotEmpty()) {
@@ -61,31 +66,78 @@ class HomeFragment : Fragment(), View.OnClickListener{
             }
         }
 
-        val segmentIndex = HomeViewModel.getSegmentIndex()
+        val listAdapter = HomeViewDataListAdapter()
+        binding.rvFuel.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(context)
+            adapter = listAdapter
+            itemAnimator = null
+        }
+
+        handleToast()
+        val segmentIndex = UserPreference.getSegmentIndex()
         type = segmentIndex.toString()
 
         binding.segmented {
             initialCheckedIndex = segmentIndex
             onSegmentChecked { segment ->
                 val segmentedTitleString = segment.text.toString()
+                UserPreference.setDateOffset(0)
                 when(segmentedTitleString){
                     getString(R.string.day) -> type = "0"
                     getString(R.string.week) -> type = "1"
                     getString(R.string.month) -> type = "2"
                     getString(R.string.year) -> type = "3"
                 }
-                HomeViewModel.setSegmentIndex(type.toInt())
+                UserPreference.setSegmentIndex(type.toInt())
+                updateTimeRang()
+                viewModel.getFuelData()
             }
-            onSegmentRechecked { segment -> Log.i(TAG, "onViewCreated: rechecked") }
-            onSegmentUnchecked { segment -> Log.i(TAG, "onViewCreated: unchecked")}
+            onSegmentRechecked {}
+            onSegmentUnchecked {}
         }
-        viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+
 
         viewModel.fuelLiveData.observe(viewLifecycleOwner, Observer {
-            Log.i(TAG, "createChart: list ${it.size}")
-            Log.i(TAG, "createChart: list type ----->  ${type}")
+            Log.i(TAG, "fuelLiveData: list ${it.size}")
+            Log.i(TAG, "fuelLiveData: list type ----->  ${type}")
             val size = it.size
+
+
         })
+
+        viewModel.fuelChangedLiveData.observe(viewLifecycleOwner, Observer {
+            Log.i(TAG, "fuelChangedLiveData: Size ${it.size}")
+            var refuelArray = ArrayList<FuelChange>()
+            var consumptionArray = ArrayList<FuelChange>()
+            var totalRefuel: Double = 0.0
+            var totalConsumption: Double = 0.0
+
+            for (item in it){
+                if (item.type == FuelChangedType.REFUEL.type){
+                    refuelArray.add(item)
+                    totalConsumption += item.fuelData!!
+                }else{
+                    consumptionArray.add(item)
+                    totalRefuel += item.fuelData!!
+                }
+            }
+
+            binding.ssRefuelrecord.text = refuelArray.size.toString() + " 次"
+            binding.ssTotalrefuel.text = totalRefuel.toString() + " L"
+            binding.ssRefuelrecord.setTextColor(requireContext().getColor(R.color.theme))
+            binding.ssTotalrefuel.setTextColor(requireContext().getColor(R.color.theme))
+
+            binding.ssUnusualrecordcount.text = consumptionArray.size.toString() + " 次"
+            binding.ssUnusualrecord.text = totalConsumption.toString() + " L"
+            binding.ssUnusualrecordcount.setTextColor(requireContext().getColor(R.color.red))
+            binding.ssUnusualrecord.setTextColor(requireContext().getColor(R.color.red))
+            listAdapter.apply {
+                listAdapter.addFuelChanges(it)
+                listAdapter.notifyDataSetChanged()
+            }
+        })
+        updateTimeRang()
     }
 
 
@@ -98,11 +150,10 @@ class HomeFragment : Fragment(), View.OnClickListener{
     override fun onResume() {
         super.onResume()
         Log.i(TAG, "onResume:")
-        currentDevice = HomeViewModel.getDevice().toString()
+        currentDevice = UserPreference.getDevice().toString()
         if(currentDevice.isNotEmpty()){
             binding.tvCarNum.text = currentDevice
-            createChart()
-            //fragmentHomeFragmentBinding.tvCarNum.setTextColor(resources.getColor(R.color.black))
+            viewModel.getFuelData()
         }
     }
 
@@ -110,6 +161,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
         super.onStop()
         binding.progressBar.visibility = View.INVISIBLE
     }
+
     override fun onClick(v: View?) {
         when(v?.id){
             R.id.tv_car_num -> {
@@ -120,15 +172,31 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 }
                 v.findNavController().navigate(direction)
             }
+            R.id.leftButton -> {
+                val offset = UserPreference.getDateOffset()
+                UserPreference.setDateOffset(offset + 1)
+                updateTimeRang()
+                viewModel.getFuelData()
+            }
+
+            R.id.rightButton -> {
+                val offset = UserPreference.getDateOffset()
+                if (offset == 0) {
+                    return
+                }else{
+                    UserPreference.setDateOffset(offset - 1)
+                    updateTimeRang()
+                    viewModel.getFuelData()
+                }
+            }
 
         }
     }
 
-    fun createChart(){
-        viewModel.getFuelData()
+    fun updateTimeRang(){
+        val timeRange = viewModel.getDisplayTimeRange()
+        binding.centerTime.text = timeRange[0] + "----" + timeRange[1]
     }
-
-
 
     fun handleToast(){
         viewModel.tipLiveData.observe(viewLifecycleOwner, {
@@ -136,31 +204,32 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 "request" -> {
                     Toast.makeText(context, R.string.request_successfully, Toast.LENGTH_SHORT).show()
                 }
-                "requestFuelData" -> {
+                ToastTips.R_FuelData -> {
                     binding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.updating_data, Toast.LENGTH_SHORT).show()
                 }
-                "rev" -> {
+                ToastTips.R_ReceivedFuelData -> {
                     binding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(context, R.string.parsing_data, Toast.LENGTH_SHORT).show()
                 }
-                "process" -> {
+                ToastTips.S_ProcessFuelDataComplete -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.processing_completed, Toast.LENGTH_SHORT).show()
+                    viewModel.getFuelData()
                 }
                 "fail" -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
                 }
-                "connectionfail" -> {
+                ToastTips.B_ConnectFailed -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.connect_fail, Toast.LENGTH_SHORT).show()
                 }
-                "writeDatafail" -> {
+                ToastTips.B_SendDataFailed -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
                 }
-                "disconnect" -> {
+                ToastTips.B_Disconnect -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.disconnect, Toast.LENGTH_SHORT).show()
                 }

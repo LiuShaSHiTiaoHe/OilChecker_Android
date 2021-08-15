@@ -13,10 +13,7 @@ import androidx.lifecycle.*
 import com.example.oilchecker.R
 import com.example.oilchecker.base.MainApplication
 import com.example.oilchecker.data.AppDatabase
-import com.example.oilchecker.data.entity.Device
-import com.example.oilchecker.data.entity.Fuel
-import com.example.oilchecker.data.entity.FuelConsume
-import com.example.oilchecker.data.entity.Refuel
+import com.example.oilchecker.data.entity.*
 import com.example.oilchecker.di.DatabaseModel
 import com.example.oilchecker.util.*
 import com.polidea.rxandroidble2.NotificationSetupMode
@@ -34,6 +31,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import khronos.*
+import khronos.Duration
 import kotlinx.coroutines.*
 import java.lang.StringBuilder
 import java.time.*
@@ -42,6 +40,7 @@ import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
+import kotlin.math.abs
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -57,76 +56,18 @@ class HomeViewModel @Inject constructor(
     private var isRequestFuelData = false
     private var receiveFuelData: String = ""
 
-//    var fuelLiveData = MutableLiveData<ArrayList<String>>()
-    var fuelLiveData = MutableLiveData<ArrayList<Map<String, String>>>()
-    var averageFuelConsumeLiveData = MutableLiveData<String>()
-    var fuelStatusLiveData = MutableLiveData<String>()
+    var fuelLiveData = MutableLiveData<ArrayList<Fuel>>()
+    var fuelChangedLiveData = MutableLiveData<ArrayList<FuelChange>>()
     var tipLiveData = MutableLiveData<String>()
+
+    var fuelChartLiveData = MutableLiveData<ArrayList<ChartDateModel>>()
+    var refuelChartLiveData = MutableLiveData<ArrayList<ChartDateModel>>()
+    var consumptionChartLiveData = MutableLiveData<ArrayList<ChartDateModel>>()
+
     var status: Boolean = false
-    var bleSendState: BleSendDataState = BleSendDataState.SendRequestDeviceInfo
 
     // TODO: Implement the ViewModel
-    companion object {
 
-        var currentDevice: String = ""
-        fun getDevice(): String? {
-            val current = SpUtils.getString("current")
-            return current
-        }
-        fun setDevice(num: String) {
-            SpUtils.put("current",num)
-        }
-
-        fun getMac(): String? {
-            return SpUtils.getString("mac")
-        }
-        fun setMac(mac: String) {
-            SpUtils.put("mac",mac)
-        }
-        fun getIdentify(): String? {
-            return SpUtils.getString("identify")
-        }
-        fun setIdentify(identify: String) {
-            SpUtils.put("identify",identify)
-        }
-        fun getAverageOil(): String? {
-            return SpUtils.getString("average")
-        }
-        fun setAverageOil(average: String) {
-            SpUtils.put("average",average)
-        }
-        fun getStatus(): String? {
-            return SpUtils.getString("status")
-        }
-
-        fun setThresholdValue(value: Double){
-            SpUtils.put("threshold", value)
-        }
-
-        fun getThreshold():Double{
-            val value = SpUtils.getDouble("threshold")
-            if (value == 0.0){
-                return  5.00
-            }else{
-                return  value!!
-            }
-        }
-
-        //首页segment index
-        fun setSegmentIndex(value: Int){
-            SpUtils.put("segmentIndex",value)
-        }
-
-        fun getSegmentIndex(): Int{
-            val value = SpUtils.getInt("segmentIndex")
-            if (value == null){
-                return  2
-            }else{
-                return  value
-            }
-        }
-
-    }
 
     fun doConnect(mac: String){
         bleDevice = MainApplication.rxBleClient.getBleDevice(mac!!)
@@ -162,17 +103,18 @@ class HomeViewModel @Inject constructor(
         val text = newState.name.toString()
         Log.i(TAG, "onConnectionStateChange: $text")
         if (text == "DISCONNECTED"){
-            tipLiveData.postValue("disconnect")
+            tipLiveData.postValue(ToastTips.B_Disconnect)
         }
     }
 
     private fun onConnectionFailure(throwable: Throwable) {
         Log.i(TAG, "onConnectionFailure: $throwable")
-        tipLiveData.postValue("connectionfail")
+        tipLiveData.postValue(ToastTips.B_ConnectFailed)
     }
 
     private fun onConnectionReceived(connection: RxBleConnection) {
         mConnection = connection
+        tipLiveData.postValue(ToastTips.B_Connected)
         if(bleDevice.isConnected) {
             Log.i(TAG, "doConnect: isConnected-->")
             mConnection.setupNotification(Contants.NOTIFY_UUID, NotificationSetupMode.QUICK_SETUP)
@@ -195,12 +137,12 @@ class HomeViewModel @Inject constructor(
 
     private fun onWriteFailure(throwable: Throwable){
         Log.i(TAG, "onWriteFailure: ${throwable.message}")
-        tipLiveData.postValue("writeDatafail")
+        tipLiveData.postValue(ToastTips.B_SendDataFailed)
     }
 
     private fun onNotificationSetupFailure(throwable: Throwable){
         Log.i(TAG, "onNotificationSetupFailure: $throwable")
-        tipLiveData.postValue("connectionfail")
+        tipLiveData.postValue(ToastTips.B_ConnectFailed)
     }
 
     //断开蓝牙连接
@@ -223,22 +165,25 @@ class HomeViewModel @Inject constructor(
                     val width = result.substring(22, 26).toInt(16).toString()
                     val height = result.substring(26, 30).toInt(16).toString()
                     val compare = result.substring(30, 34).toInt(16).toString()
-                    tipLiveData.postValue("request")
                     viewModelScope.launch {
                         async(Dispatchers.IO) {
                             database.deviceDao().insertDeviceSize(identify, length, width, height,compare)
                         }
                     }
+//                    Timer().schedule(1000){
+//                        setDeviceTime()
+//                    }
                     Timer().schedule(1000){
-                        setDeviceTime()
-                    }
-                }
-                if (result.substring(12,14) == "88"){
-                    status = true
-                    Timer().schedule(1000){
+                        status = true
                         getFuelInfo()
                     }
                 }
+//                if (result.substring(12,14) == "88"){
+//                    status = true
+//                    Timer().schedule(1000){
+//                        getFuelInfo()
+//                    }
+//                }
             }
         }else {
             if (isRequestFuelData) {
@@ -253,7 +198,7 @@ class HomeViewModel @Inject constructor(
                     status = false
                     Log.i(TAG,"Complete --->${receiveFuelData}")
                     isRequestFuelData = false
-                    tipLiveData.postValue("rev")
+                    tipLiveData.postValue(ToastTips.R_ReceivedFuelData)
                     getFuelInfoSuccess()//接收到全部数据之后，发送接收成功指令
                     processFuelData()
                     //接收数据成功之后，最好是断开蓝牙连接！！！！！！不然我让蓝牙设备断电之后。 APP会闪退
@@ -311,7 +256,7 @@ class HomeViewModel @Inject constructor(
         val len = (256 - 1).toString(16)
         Log.i(TAG, "onClick: $len")
 
-        val identify = getIdentify()
+        val identify = UserPreference.getIdentify()
         val data = "01ff"+identify+"0181ff"
 
         var sum = 0
@@ -364,7 +309,7 @@ class HomeViewModel @Inject constructor(
         val date = LocalDate.now()
         val fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
         val timeNow = date.format(fmt).substring(2,12)
-        val identify = getIdentify()
+        val identify = UserPreference.getIdentify()
         val data = dataLen + len + identify + "01" + "87" + timeNow
         var sum = 0
         for (i in 0 until data.length/2){
@@ -455,7 +400,7 @@ class HomeViewModel @Inject constructor(
         val len = (256 - 1).toString(16)
         Log.i(TAG, "onClick: $len")
 
-        val identify = getIdentify()
+        val identify = UserPreference.getIdentify()
         val data = "01ff"+identify+"018100"
 
         var sum = 0
@@ -489,7 +434,7 @@ class HomeViewModel @Inject constructor(
         val inputBytes: ByteArray = write.toByteArray()
 
         if(bleDevice.isConnected) {
-            tipLiveData.postValue("requestFuelData")
+            tipLiveData.postValue(ToastTips.R_FuelData)
             mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes.hex2byte())
                 .map { Log.i(TAG, "getDeviceInfo: write --> ${it.toHex()}") }
                 .observeOn(AndroidSchedulers.mainThread())
@@ -501,97 +446,24 @@ class HomeViewModel @Inject constructor(
 
     }
 
-    fun getTimeRange() : List<String>{
-        val segmentIndex = getSegmentIndex()
-        val today = Dates.today
-        val currentTimeInterval = today.toString("yyyy-MM-dd HH:mm:ss").toDateLong()
-        val startOfWeek = getFirstDayOfWeek()
-        val endOfWeek = today + 1.week
-        val startOfMonth = today.beginningOfMonth
-        val endOfMonth = today.endOfMonth
-        val startOfYear = today.beginningOfYear
-        val endOfYear = today.endOfYear
 
-
-
-        var startDate: String = ""
-        var endDate: String = ""
-        when (segmentIndex){
-            0 -> startDate =
-        }
-
-    }
-    //从数据库 获取油量数据
-    fun getFuelData(){
-        viewModelScope.launch {
-            async(Dispatchers.IO) {
-                val id = getIdentify() ?: return@async
-                val list = database.fuelDataDao().getFuelData(id)
-                val fuelList = ArrayList<String>()
-                for (element in list){
-                    element.capacity?.let { fuelList.add(it) }
-                }
-                fuelLiveData.postValue(fuelList)
-                val device = database.deviceDao().getDevice(id)
-                if (device != null){
-                    val consumeModelList = database.fuelConsuemDataDao().getFuelConsumeData(id)
-                    val fuelConsumeList = ArrayList<String>()
-                    for (element in consumeModelList){
-                        element.capacity?.let { fuelConsumeList.add(it) }
-                        Log.i(TAG, "consumeModelList: --> ${element.capacity}")
-                    }
-                    if (fuelConsumeList.size > 0){
-                        var isNormal = true
-                        val threshold = getThreshold()
-                        var indexForException = 0
-
-                        if (fuelConsumeList.size > 50){
-                            indexForException = fuelConsumeList.size - 50
-                        }else{
-                            indexForException = 0
-                        }
-
-                        for (index in indexForException until fuelConsumeList.size){
-                            val firstConsumptionData = fuelConsumeList[index]
-                            if (firstConsumptionData.toDouble() > threshold){
-                                isNormal = false
-                                break
-                            }
-                        }
-
-                        val averageConsumption = fuelConsumeList.last()
-                        if (isNormal){
-                            database.deviceDao().insertStatusAndAverage(id, "正常", averageConsumption)
-                            fuelStatusLiveData.postValue("正常")
-                        }else{
-                            database.deviceDao().insertStatusAndAverage(id, "异常", averageConsumption)
-                            fuelStatusLiveData.postValue("异常")
-                        }
-                        averageFuelConsumeLiveData.postValue(averageConsumption)
-                    }
-                }
-            }
-        }
-    }
 
     //处理油量数据
     fun processFuelData(){
         viewModelScope.launch {
             async(Dispatchers.IO) {
-                val id = getIdentify() ?: return@async
+                val id = UserPreference.getIdentify() ?: return@async
                 val device = database.deviceDao().getDevice(id)
-                val testTimeString = "202107291209"
+                var testTimeString = "20210729120943"
                 if (device != null){
                     val length = device.length.toInt()
                     val width = device.width.toInt()
 
-//                    val fuelList = ArrayList<String>()
-//                    val fuelConsumeList = ArrayList<String>()
-//                    val refuelList = ArrayList<String>()
-
                     var newFuelList = ArrayList<Map<String, String>>()
-                    var newFuelConsumeList = ArrayList<Map<String, String>>()
-                    var newRefuelList = ArrayList<Map<String, String>>()
+                    var newChangedFuelList = ArrayList<Map<String, String>>()
+
+//                    var newFuelConsumeList = ArrayList<Map<String, String>>()
+//                    var newRefuelList = ArrayList<Map<String, String>>()
 
                     var isContinue = true
                     var bigToLittelEnd = StringBuilder()
@@ -599,8 +471,10 @@ class HomeViewModel @Inject constructor(
 
                     var cursor = 0
                     var indexOfFuelData = 0
-                    var indexOfConsumptionData = 0
-                    var indexOfRefuelData = 0
+//                    var indexOfFuelChange = 0
+
+//                    var indexOfConsumptionData = 0
+//                    var indexOfRefuelData = 0
 
                     var deviceTimeString = ""
                     while (isContinue) {
@@ -638,7 +512,11 @@ class HomeViewModel @Inject constructor(
 //                                        continue
 //                                    }
 //                                    val date = deviceTimeString.toDate("yyyyMMddHHmmss") + 2.minutes
-                                    val date = testTimeString.toDate("yyyyMMddHHmmss") + 2.minutes
+                                    var date = testTimeString.toDate("yyyyMMddHHmmss")
+                                    date = date + 2.hours
+
+                                    testTimeString = date.toString("yyyyMMddHHmmss")
+                                    Log.i(TAG+"testTimeString", "${date.toString("yyyy-MM-dd HH:mm:ss")}")
                                     bigToLittelEnd.append(fuelData.substring(2,4))
                                     bigToLittelEnd.append(fuelData.substring(0,2))
                                     realHeightIntValue = bigToLittelEnd.toString().toInt(16)
@@ -668,14 +546,21 @@ class HomeViewModel @Inject constructor(
                                         val preFuelDataMap = newFuelList[indexOfFuelData - 1]
                                         val changedFuelDataBetweenRecords = preFuelDataMap.get("fuel")!!.toDouble() - realFuelData
                                         if (changedFuelDataBetweenRecords < 0){
-                                            //油量在增加，有加油的操作
-                                            newRefuelList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "refuel" to changedFuelDataBetweenRecords.toString(), "index" to indexOfRefuelData.toString()))
-                                            indexOfRefuelData++
-                                        }else{
-                                            //耗油操作
-                                            newFuelConsumeList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "consumption" to changedFuelDataBetweenRecords.toString(), "index" to indexOfConsumptionData.toString()))
-                                            indexOfConsumptionData++
+                                            Log.i(TAG, "newChangedFuelList $changedFuelDataBetweenRecords")
+                                            newChangedFuelList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "fueldata" to abs(changedFuelDataBetweenRecords).toString(), "index" to indexOfFuelData.toString(), "type" to FuelChangedType.REFUEL.type))
+                                        }else if(changedFuelDataBetweenRecords > 0){
+                                            newChangedFuelList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "fueldata" to changedFuelDataBetweenRecords.toString(), "index" to indexOfFuelData.toString(), "type" to FuelChangedType.CONSUMPTION.type))
                                         }
+
+//                                        if (changedFuelDataBetweenRecords < 0){
+//                                            //油量在增加，有加油的操作
+//                                            newRefuelList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "refuel" to changedFuelDataBetweenRecords.toString(), "index" to indexOfRefuelData.toString()))
+//                                            indexOfRefuelData++
+//                                        }else{
+//                                            //耗油操作
+//                                            newFuelConsumeList.add(mapOf("time" to timeFormatterString, "timeInterval" to timeInterval, "consumption" to changedFuelDataBetweenRecords.toString(), "index" to indexOfConsumptionData.toString()))
+//                                            indexOfConsumptionData++
+//                                        }
                                     }
                                     indexOfFuelData++
                                 }
@@ -690,36 +575,342 @@ class HomeViewModel @Inject constructor(
 
                     val dataList = arrayListOf<Fuel>()
                     for (index in 0 until newFuelList.size){
-//                        dataList.add(Fuel(i,id,fuelList[i]))TODO：数据库改变，增加了时间字段，入库的操作
+//                      TODO：数据库改变，增加了时间字段，入库的操作
                         val fuelDataMap = newFuelList[index]
                         dataList.add(Fuel(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
                     }
                     database.fuelDataDao().insertFuelData(dataList)
 
-                    val fuelConsumedataList = arrayListOf<FuelConsume>()
-                    for (index in 0 until newFuelConsumeList.size){
-//                        fuelConsumedataList.add(FuelConsume(i,id,fuelConsumeList[i]))
-                        val fuelDataMap = newFuelConsumeList[index]
-                        fuelConsumedataList.add(FuelConsume(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
+                    val fuelChangedDataList = arrayListOf<FuelChange>()
+                    for (index in 0 until newChangedFuelList.size){
+                        val fuelchangedDataMap = newChangedFuelList[index]
+                        fuelChangedDataList.add(FuelChange(index, fuelchangedDataMap.get("type"), id, fuelchangedDataMap.get("fueldata")!!.toDouble(), fuelchangedDataMap.get("time"), fuelchangedDataMap.get("timeInterval")!!.toLong()))
                     }
-
-                    database.fuelConsuemDataDao().insertFuelConsumeData(fuelConsumedataList)
-                    val refuelDataList = arrayListOf<Refuel>()
-                    for (index in 0 until newRefuelList.size){
-//                        refuelDataList.add(Refuel(i,id,refuelList[i]))
-                        val fuelDataMap = newRefuelList[index]
-                        refuelDataList.add(Refuel(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
-                    }
+                    database.fuelChangeDao().insertFuelChangedData(fuelChangedDataList)
+//                    val fuelConsumedataList = arrayListOf<FuelConsume>()
+//                    for (index in 0 until newFuelConsumeList.size){
+//                        val fuelDataMap = newFuelConsumeList[index]
+//                        fuelConsumedataList.add(FuelConsume(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
+//                    }
+//
+//                    database.fuelConsuemDataDao().insertFuelConsumeData(fuelConsumedataList)
+//                    val refuelDataList = arrayListOf<Refuel>()
+//                    for (index in 0 until newRefuelList.size){
+//                        val fuelDataMap = newRefuelList[index]
+//                        refuelDataList.add(Refuel(index, id, fuelDataMap.get("fuel")!!, fuelDataMap.get("time"), fuelDataMap.get("timeInterval")!!.toLong()))
+//                    }
 //                    if (fuelConsumeList.size > 0){
 //                        averageFuelConsumeLiveData.postValue(fuelConsumeList.last())
 //                    }
-                    database.refuelDataDao().insertRefuelData(refuelDataList)
-                    tipLiveData.postValue("process")
-                    fuelLiveData.postValue(newFuelList)
+//                    database.refuelDataDao().insertRefuelData(refuelDataList)
+                    tipLiveData.postValue(ToastTips.S_ProcessFuelDataComplete)
+//                    fuelLiveData.postValue(dataList)
                 }
 
             }
         }
     }
+
+
+
+    fun getDisplayTimeRange(): ArrayList<String>{
+        val timeRange = getTimeRange()
+        var startTime = timeRange[0].toDate("yyyy-MM-dd HH:mm:ss")
+        val endTime = timeRange[1].toDate("yyyy-MM-dd HH:mm:ss")
+        val segmentIndex = UserPreference.getSegmentIndex()
+        var startDate: String = ""
+        var endDate: String = ""
+        when (segmentIndex){
+            0 -> {
+                startDate = startTime.toString("MM-dd")
+                endDate = endTime.toString("MM-dd")
+            }
+            1 -> {
+                startDate = startTime.toString("MM-dd")
+                endDate = endTime.toString("MM-dd")
+            }
+            2 -> {
+                startDate = startTime.toString("yyyy-MM")
+                endDate = endTime.toString("yyyy-MM")
+            }
+            3 -> {
+                startDate = startTime.toString("yyyy-MM")
+                endDate = endTime.toString("yyyy-MM")
+            }
+        }
+
+        val rangList = ArrayList<String>()
+        rangList.add(startDate)
+        rangList.add(endDate)
+        return rangList
+    }
+
+    fun getTimeRange() : ArrayList<String>{
+        val segmentIndex = UserPreference.getSegmentIndex()
+        val today = Dates.today
+        val offset = UserPreference.getDateOffset()
+        var startDate: String = ""
+        var endDate: String = ""
+
+        when (segmentIndex){
+            0 -> {
+                val startOfDay = today.beginningOfDay - offset.days
+                val endOfDay = today.endOfDay - offset.days
+                startDate = startOfDay.toString("yyyy-MM-dd HH:mm:ss")
+                endDate = endOfDay.toString("yyyy-MM-dd HH:mm:ss")
+            }
+            1 -> {
+                val startOfWeek = getFirstDayOfWeek() - offset.weeks
+                val endOfWeek = startOfWeek + 1.week - 1.days
+                startDate = startOfWeek.toString("yyyy-MM-dd HH:mm:ss")
+                endDate = endOfWeek.endOfDay.toString("yyyy-MM-dd HH:mm:ss")
+            }
+            2 -> {
+                val startOfMonth = today.beginningOfMonth - offset.months
+                val endOfMonth = today.endOfMonth - offset.months
+                startDate = startOfMonth.toString("yyyy-MM-dd HH:mm:ss")
+                endDate = endOfMonth.toString("yyyy-MM-dd HH:mm:ss")
+            }
+            3 -> {
+                val startOfYear = today.beginningOfYear - offset.years
+                val endOfYear = today.endOfYear - offset.years
+                startDate = startOfYear.toString("yyyy-MM-dd HH:mm:ss")
+                endDate = endOfYear.toString("yyyy-MM-dd HH:mm:ss")
+            }
+        }
+        Log.i(TAG, "$startDate ------- $endDate")
+        val rangList = ArrayList<String>()
+        rangList.add(startDate)
+        rangList.add(endDate)
+        return rangList
+
+    }
+
+    //从数据库 获取油量数据
+    fun getFuelData(){
+        viewModelScope.launch {
+            async(Dispatchers.IO) {
+                val id = UserPreference.getIdentify() ?: return@async
+                val list = database.fuelDataDao().getFuelData(id)
+                val fuelChangedDataList = database.fuelChangeDao().getFuelChangedData(id)
+
+                val timeRange = getTimeRange()
+                val startDateTime = timeRange[0].toDateLong()
+                val endDateTime = timeRange[1].toDateLong()
+
+                val threshold = UserPreference.getThreshold()
+
+                //油量数据
+                var newFuelList = ArrayList<Fuel>()
+                for (item in list){
+                    item.recordTimeInterval?.let {
+                        if (it > startDateTime && it < endDateTime){
+                            newFuelList.add(item)
+                        }
+                    }
+                }
+                fuelLiveData.postValue(newFuelList)
+
+                //油量变化数据
+                var newFuelChangedList = ArrayList<FuelChange>()
+                for (item in fuelChangedDataList){
+                    item.recordTimeInterval?.let {
+                        if (it > startDateTime && it < endDateTime){
+                            newFuelChangedList.add(item)
+                        }
+                    }
+                }
+                fuelChangedLiveData.postValue(newFuelChangedList)
+            }
+        }
+    }
+
+
+    fun getChartStyleFuelData(){
+        viewModelScope.launch {
+            async(Dispatchers.Default) {
+                val id = UserPreference.getIdentify() ?: return@async
+                val list = database.fuelDataDao().getFuelData(id)
+                val fuelChangedDataList = database.fuelChangeDao().getFuelChangedData(id)
+
+                val timeRange = getTimeRange()
+                val startDateTime = timeRange[0].toDateLong()
+                val endDateTime = timeRange[1].toDateLong()
+                val segmentIndex = UserPreference.getSegmentIndex()
+
+                var chartFuelArray = ArrayList<ChartDateModel>()
+                var chartRefuelArray = ArrayList<ChartDateModel>()
+                var chartconsumptionArray = ArrayList<ChartDateModel>()
+
+                when (segmentIndex){
+                    0 -> {
+                        val startOfDay = startDateTime.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
+                        for (index in 0 until 24){
+                            val time = startOfDay + index.hours
+                            chartFuelArray.add(ChartDateModel(index.toLong(),0.0))
+                            chartRefuelArray.add(ChartDateModel(index.toLong(),0.0))
+                            chartconsumptionArray.add(ChartDateModel(index.toLong(),0.0))
+//                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateHour().toLong(),0.0))
+//                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateHour().toLong(),0.0))
+//                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateHour().toLong(),0.0))
+
+                        }
+                    }
+                    1 -> {
+                        val startOfDay = startDateTime.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
+                        for (index in 0 until 7){
+                            val time = startOfDay + index.days
+                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0))
+                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0))
+                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0))
+                        }
+                    }
+                    2 -> {
+                        val startOfDay = startDateTime.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
+                        val end = endDateTime.getDateDay()
+                        for (index in 0 until end){
+                            val time = startOfDay + index.days
+                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0))
+                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0))
+                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0))
+                        }
+                    }
+                    3 -> {
+                        val startOfDay = startDateTime.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
+//                        for (index in 0 until 12){
+//                            val time = startOfDay + index.months
+//                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateMonth().toLong(),0.0))
+//                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateMonth().toLong(),0.0))
+//                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateMonth().toLong(),0.0))
+//                        }
+                        for (index in 1 until 13){
+                            val time = startOfDay + index.months
+                            chartFuelArray.add(ChartDateModel(index.toLong(),0.0))
+                            chartRefuelArray.add(ChartDateModel(index.toLong(),0.0))
+                            chartconsumptionArray.add(ChartDateModel(index.toLong(),0.0))
+                        }
+                    }
+                }
+
+                //油量数据
+                var newFuelList = ArrayList<Fuel>()
+                for (item in list){
+                    item.recordTimeInterval?.let {
+                        if (it > startDateTime && it < endDateTime){
+                            newFuelList.add(item)
+                        }
+                    }
+                }
+
+                //油量变化数据
+                var newFuelChangedList = ArrayList<FuelChange>()
+                for (item in fuelChangedDataList){
+                    item.recordTimeInterval?.let {
+                        if (it > startDateTime && it < endDateTime){
+                            newFuelChangedList.add(item)
+                        }
+                    }
+                }
+
+                var refuelArray = ArrayList<FuelChange>()
+                var consumptionArray = ArrayList<FuelChange>()
+
+                for (item in newFuelChangedList){
+                    if (item.type == FuelChangedType.REFUEL.type){
+                        refuelArray.add(item)
+                    }else{
+                        consumptionArray.add(item)
+                    }
+                }
+
+                for (item in newFuelList){
+                    val startOfDay = item.recordTimeInterval!!.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
+                    var current: ChartDateModel? = null
+                    when (segmentIndex){
+                        0 -> {
+                            current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateHour().toLong() }
+                        }
+                        1 -> {
+                            current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                        }
+                        2 -> {
+                            current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                        }
+                        3 -> {
+                            current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateMonth().toLong() }
+                        }
+                    }
+                    current?.let {
+                        chartFuelArray.remove(it)
+                        it.fuelData += item.capacity!!.toDouble()
+                        chartFuelArray.add(it)
+                    }
+                }
+
+                for (item in refuelArray){
+                    val startOfDay = item.recordTimeInterval!!.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
+                    var current: ChartDateModel? = null
+                    when (segmentIndex){
+                        0 -> {
+                            current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateHour().toLong() }
+                        }
+                        1 -> {
+                            current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                        }
+                        2 -> {
+                            current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                        }
+                        3 -> {
+                            current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateMonth().toLong() }
+                        }
+                    }
+
+                    current?.let {
+                        chartRefuelArray.remove(it)
+                        it.fuelData += item.fuelData!!
+                        chartRefuelArray.add(it)
+                    }
+                }
+
+                for (item in consumptionArray){
+                    val startOfDay = item.recordTimeInterval!!.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
+                    var current: ChartDateModel? = null
+                    when (segmentIndex){
+                        0 -> {
+                            current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateHour().toLong() }
+                        }
+                        1 -> {
+                            current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                        }
+                        2 -> {
+                            current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                        }
+                        3 -> {
+                            current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateMonth().toLong() }
+                        }
+                    }
+                    current?.let {
+                        chartconsumptionArray.remove(it)
+                        it.fuelData += abs(item.fuelData!!)
+                        chartconsumptionArray.add(it)
+                    }
+
+                }
+                Log.i("chartData", "$newFuelList")
+                Log.i("chartData", "$refuelArray")
+                Log.i("chartData", "$consumptionArray")
+
+                Log.i("chartData", "$chartFuelArray")
+                Log.i("chartData", "$chartRefuelArray")
+                Log.i("chartData", "$chartconsumptionArray")
+
+                fuelChartLiveData.postValue(chartFuelArray)
+                refuelChartLiveData.postValue(chartRefuelArray)
+                consumptionChartLiveData.postValue(chartconsumptionArray)
+
+            }
+        }
+    }
+
 
 }

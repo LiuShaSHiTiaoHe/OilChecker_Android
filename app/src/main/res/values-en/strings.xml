@@ -33,9 +33,12 @@
     <string name="Cancle">Cancle</string>
     <string name="ChangeDeviceInfoTips">Change device infomation will lead to deviation of the collected data, Sure to modify?</string>
     <string name="select">Select a Car</string>
-    <string name="fuel_record">Consumption Record</string>
+    <string name="fuel_record">Fuel Record</string>
+    <string name="consumption_record">Consumption Record</string>
     <string name="refuel_record">Refuel Record</string>
 
+    <string name="fuelchanged_refuel">refuel</string>
+    <string name="fuelchanged_unusual">unusual</string>
     //Setting
     <string name="fault_list">Equipment Malfunction Record</string>
     <string name="fault_record">Malfuntion</string>
