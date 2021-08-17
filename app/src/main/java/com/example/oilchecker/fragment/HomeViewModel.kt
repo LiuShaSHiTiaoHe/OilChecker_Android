@@ -613,36 +613,28 @@ class HomeViewModel @Inject constructor(
 
 
 
-    fun getDisplayTimeRange(): ArrayList<String>{
+    fun getDisplayTimeRange(): String{
         val timeRange = getTimeRange()
         var startTime = timeRange[0].toDate("yyyy-MM-dd HH:mm:ss")
         val endTime = timeRange[1].toDate("yyyy-MM-dd HH:mm:ss")
         val segmentIndex = UserPreference.getSegmentIndex()
-        var startDate: String = ""
-        var endDate: String = ""
+        var displayTimeString: String = ""
         when (segmentIndex){
             0 -> {
-                startDate = startTime.toString("MM-dd")
-                endDate = endTime.toString("MM-dd")
+                displayTimeString = startTime.toString("yyyy/MM/dd")
             }
             1 -> {
-                startDate = startTime.toString("MM-dd")
-                endDate = endTime.toString("MM-dd")
+                displayTimeString = startTime.toString("MM/dd") + " - " + endTime.toString("MM/dd")
             }
             2 -> {
-                startDate = startTime.toString("yyyy-MM")
-                endDate = endTime.toString("yyyy-MM")
+                displayTimeString = startTime.toString("yyyy-MM")
             }
             3 -> {
-                startDate = startTime.toString("yyyy-MM")
-                endDate = endTime.toString("yyyy-MM")
+                displayTimeString = startTime.toString("yyyy")
             }
         }
 
-        val rangList = ArrayList<String>()
-        rangList.add(startDate)
-        rangList.add(endDate)
-        return rangList
+        return displayTimeString
     }
 
     fun getTimeRange() : ArrayList<String>{
@@ -750,10 +742,6 @@ class HomeViewModel @Inject constructor(
                             chartFuelArray.add(ChartDateModel(index.toLong(),0.0))
                             chartRefuelArray.add(ChartDateModel(index.toLong(),0.0))
                             chartconsumptionArray.add(ChartDateModel(index.toLong(),0.0))
-//                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateHour().toLong(),0.0))
-//                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateHour().toLong(),0.0))
-//                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateHour().toLong(),0.0))
-
                         }
                     }
                     1 -> {
@@ -777,12 +765,6 @@ class HomeViewModel @Inject constructor(
                     }
                     3 -> {
                         val startOfDay = startDateTime.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
-//                        for (index in 0 until 12){
-//                            val time = startOfDay + index.months
-//                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateMonth().toLong(),0.0))
-//                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateMonth().toLong(),0.0))
-//                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateMonth().toLong(),0.0))
-//                        }
                         for (index in 1 until 13){
                             val time = startOfDay + index.months
                             chartFuelArray.add(ChartDateModel(index.toLong(),0.0))

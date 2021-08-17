@@ -73,7 +73,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
             adapter = listAdapter
             itemAnimator = null
         }
-
         handleToast()
         val segmentIndex = UserPreference.getSegmentIndex()
         type = segmentIndex.toString()
@@ -123,12 +122,12 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 }
             }
 
-            binding.ssRefuelrecord.text = refuelArray.size.toString() + " 次"
+            binding.ssRefuelrecord.text = refuelArray.size.toString() + " " + requireContext().getString(R.string.home_refuel_times)
             binding.ssTotalrefuel.text = totalRefuel.toString() + " L"
             binding.ssRefuelrecord.setTextColor(requireContext().getColor(R.color.theme))
             binding.ssTotalrefuel.setTextColor(requireContext().getColor(R.color.theme))
 
-            binding.ssUnusualrecordcount.text = consumptionArray.size.toString() + " 次"
+            binding.ssUnusualrecordcount.text = consumptionArray.size.toString() + " " + requireContext().getString(R.string.home_refuel_times)
             binding.ssUnusualrecord.text = totalConsumption.toString() + " L"
             binding.ssUnusualrecordcount.setTextColor(requireContext().getColor(R.color.red))
             binding.ssUnusualrecord.setTextColor(requireContext().getColor(R.color.red))
@@ -138,6 +137,12 @@ class HomeFragment : Fragment(), View.OnClickListener{
             }
         })
         updateTimeRang()
+
+        currentDevice = UserPreference.getDevice().toString()
+        if(currentDevice.isNotEmpty()){
+            binding.tvCarNum.text = currentDevice
+            viewModel.getFuelData()
+        }
     }
 
 
@@ -150,11 +155,7 @@ class HomeFragment : Fragment(), View.OnClickListener{
     override fun onResume() {
         super.onResume()
         Log.i(TAG, "onResume:")
-        currentDevice = UserPreference.getDevice().toString()
-        if(currentDevice.isNotEmpty()){
-            binding.tvCarNum.text = currentDevice
-            viewModel.getFuelData()
-        }
+
     }
 
     override fun onStop() {
@@ -194,8 +195,8 @@ class HomeFragment : Fragment(), View.OnClickListener{
     }
 
     fun updateTimeRang(){
-        val timeRange = viewModel.getDisplayTimeRange()
-        binding.centerTime.text = timeRange[0] + "----" + timeRange[1]
+        val diaplayTimeString = viewModel.getDisplayTimeRange()
+        binding.centerTime.text = diaplayTimeString
     }
 
     fun handleToast(){

@@ -31,7 +31,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
     }
 
     private lateinit var binding: StatisticFragmentBinding
-    private lateinit var viewModel: StatisticViewModel
+//    private lateinit var viewModel: StatisticViewModel
     private lateinit var homeViewModel: HomeViewModel
     private var type: String = ""
     private var currentDevice: String = ""
@@ -72,14 +72,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             onSegmentUnchecked {}
         }
         updateTimeRang()
-    }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(StatisticViewModel::class.java)
-        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-
-        // TODO: Use the ViewModel
         homeViewModel.fuelChartLiveData.observe(viewLifecycleOwner, Observer {
             initFuelChart(it)
         })
@@ -92,20 +85,34 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             initRefuelChart(it)
         })
 
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.i(TAG, "onResume:")
         currentDevice = UserPreference.getDevice().toString()
         if(currentDevice.isNotEmpty()){
             homeViewModel.getChartStyleFuelData()
         }
     }
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+//        viewModel = ViewModelProvider(this).get(StatisticViewModel::class.java)
+//        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+
+        // TODO: Use the ViewModel
+
+
+
+
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.i(TAG, "onResume:")
+
+    }
+
     fun updateTimeRang(){
-        val timeRange = homeViewModel.getDisplayTimeRange()
-        binding.centerTime.text = timeRange[0] + "----" + timeRange[1]
+        val displayTimeString = homeViewModel.getDisplayTimeRange()
+        binding.centerTime.text = displayTimeString
     }
 
     fun initFuelChart(dataList: ArrayList<ChartDateModel>){

@@ -151,6 +151,7 @@
                     android:layout_marginVertical="10dp"
                     android:textAlignment="center"
                     android:textSize="14sp"
+                    android:textColor="@color/black"
                     app:layout_constraintStart_toEndOf="@+id/leftButton"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/rightButton">
@@ -185,7 +186,7 @@
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:gravity="center"
-                android:text="统计"
+                android:text="@string/home_summary"
                 app:layout_constraintTop_toTopOf="parent"
                 ></TextView>
             <LinearLayout
@@ -202,13 +203,15 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
+                    android:background="@drawable/icon_home_refuel_record"
                     ></ImageView>
                 <TextView
                     android:layout_width="120dp"
                     android:layout_height="20dp"
                     android:layout_marginLeft="20dp"
                     android:layout_marginTop="5dp"
-                    android:text="加油记录"></TextView>
+                    android:textColor="@color/black"
+                    android:text="@string/home_refuel_record"></TextView>
 
                 <TextView
                     android:id="@+id/ss_refuelrecord"
@@ -235,13 +238,15 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
+                    android:background="@drawable/icon_home_refuel_total"
                     ></ImageView>
                 <TextView
                     android:layout_width="120dp"
                     android:layout_height="20dp"
                     android:layout_marginLeft="20dp"
                     android:layout_marginTop="5dp"
-                    android:text="累计加油"></TextView>
+                    android:textColor="@color/black"
+                    android:text="@string/home_refuel_total"></TextView>
 
                 <TextView
                     android:id="@+id/ss_totalrefuel"
@@ -267,13 +272,15 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
+                    android:background="@drawable/icon_home_fuel_unusual"
                     ></ImageView>
                 <TextView
                     android:layout_width="120dp"
                     android:layout_height="20dp"
                     android:layout_marginLeft="20dp"
                     android:layout_marginTop="5dp"
-                    android:text="异常记录"></TextView>
+                    android:textColor="@color/black"
+                    android:text="@string/home_unusual_record"></TextView>
 
                 <TextView
                     android:id="@+id/ss_unusualrecordcount"
@@ -300,13 +307,15 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
+                    android:background="@drawable/icon_home_unusual_record"
                     ></ImageView>
                 <TextView
                     android:layout_width="120dp"
                     android:layout_height="20dp"
                     android:layout_marginLeft="20dp"
                     android:layout_marginTop="5dp"
-                    android:text="异常油量"></TextView>
+                    android:textColor="@color/black"
+                    android:text="@string/home_unusual_fuel"></TextView>
 
                 <TextView
                     android:id="@+id/ss_unusualrecord"
@@ -329,7 +338,8 @@
             android:layout_marginTop="15dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/bg_rectangle_white"
-            app:layout_constraintTop_toBottomOf="@+id/tips_module_statistics">
+            app:layout_constraintTop_toBottomOf="@+id/tips_module_statistics"
+            >
 
             <TextView
                 android:id="@+id/title_detial"
@@ -338,21 +348,33 @@
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:gravity="center"
-                android:text="详细"
+                android:text="@string/home_detail"
                 app:layout_constraintTop_toTopOf="parent"
                 ></TextView>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvFuel"
+            <RelativeLayout
+                android:id="@+id/setting_info_ll_photo"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="vertical"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginBottom="20dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/title_detial"/>
+                android:layout_height="match_parent"
+                android:descendantFocusability="blocksDescendants"
+                app:layout_constraintTop_toBottomOf="@id/title_detial">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvFuel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginBottom="10dp"
+                    android:focusableInTouchMode="false"
+                    android:scrollbars="none"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    />
+            </RelativeLayout>
+
+
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -5,7 +5,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.SettingAppParametersFragment">
+    tools:context=".fragment.SettingAppParametersFragment"
+    android:background="@color/white">
 
     <LinearLayout
         android:id="@+id/ll_back"
@@ -59,6 +60,7 @@
         android:maxLength="5"
         android:paddingStart="10dp"
         android:background="@drawable/bg_rectangle_gray"
+        android:textColor="@color/theme"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_threshold"/>
     <TextView

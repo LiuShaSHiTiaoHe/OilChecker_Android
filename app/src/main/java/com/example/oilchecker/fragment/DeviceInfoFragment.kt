@@ -103,12 +103,9 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
         macAddress = args.mac
         bleDevice = MainApplication.rxBleClient.getBleDevice(macAddress!!)
-//        RxBleLog.setLogLevel(RxBleLog.VERBOSE)
-        //viewModel.doConnect(macAddress)
         Timer().schedule(1000){
             doConnect()
         }
-//        doConnect()
         viewModel.tipLiveData.observe(viewLifecycleOwner, {
             Log.i(TAG, "onViewCreated: tipLiveData -->$it")
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -174,7 +171,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
     private fun onConnectionFailure(throwable: Throwable) {
         Log.i(TAG, "onConnectionFailure: $throwable")
-//        Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
         Toast.makeText(context, getString(R.string.connect_fail), Toast.LENGTH_SHORT).show()
         deviceFragmentBinding.btnSave.findNavController().navigateUp()
     }
@@ -198,15 +194,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ onNotificationReceived(it) }, { onNotificationSetupFailure(it) })
                 .let { connectionDisposable.add(it) }
-
-           /* connectionObservable
-                //  .doOnNext{it.setupNotification(Contants.NOTIFY_UUID)}
-                .doOnNext { it.writeCharacteristic(Contants.test, inputBytes) }
-                .flatMap { it.setupNotification(Contants.test) }
-                .flatMap { it }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ onNotificationReceived(it) }, { onNotificationSetupFailure(it) })
-                .let { connectionDisposable.add(it) }*/
         }else {
             Log.i(TAG, "doConnect: disConnected")
         }
@@ -316,18 +303,12 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
                         val width = deviceFragmentBinding.etWidth.text.toString()
                         val height = deviceFragmentBinding.etHeight.text.toString()
                         val compare = deviceFragmentBinding.etCompare.text.toString()
+//                        val compare = "FFFF"
 
                         if (carNum.isEmpty() || identify.isEmpty() || length.isEmpty() || width.isEmpty() || height.isEmpty() || compare.isEmpty()){
                             Toast.makeText(context, getString(R.string.enter_complete_data), Toast.LENGTH_SHORT).show()
                         }else {
                             //todo save data to db in notify success
-                            /*
-                            val id = identify.toInt(16)
-                            var device: Device = Device(id ,identify, carNum,length, width, height, compare, macAddress)
-                            viewModel.addNewDevice(device)*/
-                            // saveInfo()
-
-
                             //todo already connect
                             setDeviceInfo(carNum,identify,length, width, height, compare)
                         }
@@ -347,27 +328,12 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
     private fun getDeviceInfo() {
 
-        // 02 len 256-len id id>>8 01 cmd data bcc 03
-        //data 85 11
-        // 02 01 256-1 id id>>8 01 85 11 bcc 03
-        //256 128 64 32 16 8
-        //val num: Int = res.substring(8, 10)
-        //id 0038
-        //bcc 02^ fe ^00
-        //02 02 fe 00 38 01 85 11
-
-
         var dataLen = 1.toString(16)   //数据长度 1字节
         val len = (256 - 1).toString(16) //数据长补数 1字节
-//        Log.i(TAG, "onClick: $len")
-        //5+2
-        // device identify --> 0038-->0000
         val data = "01ff0000018511"
         var sum = 0
         for (i in 0 until data.length/2){
             sum = sum xor data.substring(i*2,i*2+2).toInt(16)
-            //Log.i(TAG, "onClick: sum $sum data "+data.substring(i*2,i*2+2)+" -->${data.substring(i*2,i*2+2).toInt(16)}")
-
         }
         if (dataLen.length == 1){
             dataLen = "0$dataLen"
@@ -393,8 +359,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         Log.i(TAG, "onClick: $write")
 
         val inputBytes: ByteArray = write.toByteArray()
-        //mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes)
-        Log.i(TAG, "getDeviceInfo: connect state -> ${bleDevice.isConnected}")
 
         mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes.hex2byte())
             .map { Log.i(TAG, "getDeviceInfo: write --> ${it.toHex()}") }
@@ -444,6 +408,7 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         data.append(width.toDoubleByte())  //width
         data.append(height.toDoubleByte())  //height
         data.append(compare.toDoubleByte())
+//        data.append(compare)
 
         var sum = 0
         for (i in 0 until data.length/2){
@@ -475,23 +440,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         }else {
             deviceFragmentBinding.btnSave.findNavController().navigateUp()
         }
-
-
-        /*if (bleDevice.isConnected) {
-            Log.i(TAG, "setDeviceInfo: isConnected --> write")
-            //mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes)
-
-            connectionObservable
-                .firstOrError()
-                .flatMap { it.writeCharacteristic(Contants.WRITE_UUID, inputBytes) }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ onWriteSuccess() }, { onWriteFailure(it) })
-                .let { connectionDisposable.add(it) }
-        }else {
-            Log.i(TAG, "setDeviceInfo: disConnected --> write")
-
-            mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes)
-        }*/
     }
 
     private fun onWriteSuccess(){

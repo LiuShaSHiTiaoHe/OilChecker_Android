@@ -39,6 +39,16 @@
 
     <string name="fuelchanged_refuel">refuel</string>
     <string name="fuelchanged_unusual">unusual</string>
+
+    <string name="home_summary">Summary</string>
+    <string name="home_detail">Detail</string>
+
+    <string name="home_refuel_times">Times</string>
+    <string name="home_refuel_record">Refuel Record</string>
+    <string name="home_refuel_total">Total Refuel</string>
+    <string name="home_unusual_record">Unusual Record</string>
+    <string name="home_unusual_fuel">Unusual Fuel</string>
+
     //Setting
     <string name="fault_list">Equipment Malfunction Record</string>
     <string name="fault_record">Malfuntion</string>

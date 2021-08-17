@@ -38,6 +38,16 @@
     <string name="fuelchanged_refuel">加油</string>
     <string name="fuelchanged_unusual">异常</string>
 
+    <string name="home_summary">统计</string>
+    <string name="home_detail">详细</string>
+
+    <string name="home_refuel_times">次</string>
+
+    <string name="home_refuel_record">加油记录</string>
+    <string name="home_refuel_total">累计加油</string>
+    <string name="home_unusual_record">异常记录</string>
+    <string name="home_unusual_fuel">异常油量</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="add">添加</string>
     <string name="Edit">修改</string>
