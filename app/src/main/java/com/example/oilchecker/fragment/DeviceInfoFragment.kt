@@ -61,32 +61,20 @@ private const val ARG_PARAM2 = "param2"
 class DeviceInfoFragment : Fragment(), View.OnClickListener{
     // TODO: Rename and change types of parameters
     private val TAG = "DeviceInfoFragment"
-    private var param1: String? = null
-    private var param2: String? = null
     private lateinit var viewModel: BleDeviceViewModel
     private lateinit var deviceFragmentBinding: FragmentDeviceInfoBinding
     private val args: DeviceInfoFragmentArgs by navArgs()
     private lateinit var characteristicUuid: UUID
-
     private lateinit var bleDevice: RxBleDevice
-
     private lateinit var connectionObservable: Observable<RxBleConnection>
     private val disconnectTriggerSubject = PublishSubject.create<Unit>()
-
     private val connectionDisposable = CompositeDisposable()
-
-    private val bytesToWrite = ByteArray(1024) // a kilobyte array
     private lateinit var mConnection: RxBleConnection
     private lateinit var macAddress: String
-    private lateinit var hexKeyboard: IKeyHexKeyboard
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,27 +114,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         return inflater.inflate(R.layout.fragment_device_info, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment DeviceInfoFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            DeviceInfoFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                    Log.i(TAG, "newInstance: $param1   --> $param2")
-
-                }
-            }
-    }
 
     fun doConnect(){
 
@@ -155,11 +122,9 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         } else {
             connectionObservable = bleDevice.establishConnection(false)
             connectionObservable
-                //.flatMapSingle { it.discoverServices() }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     mConnection = it
-                   // test()
                     onConnectionReceived(it)
                 },{
                     onConnectionFailure(it)
@@ -214,7 +179,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
                 deviceFragmentBinding.etLength.text = Editable.Factory.getInstance().newEditable(length)
                 deviceFragmentBinding.etWidth.text = Editable.Factory.getInstance().newEditable(width)
                 deviceFragmentBinding.etHeight.text = Editable.Factory.getInstance().newEditable(height)
-                deviceFragmentBinding.etCompare.text = Editable.Factory.getInstance().newEditable(compare)
                 viewModel.getDeviceById(identify)
                 Toast.makeText(context, R.string.request_successfully, Toast.LENGTH_SHORT).show()
             }else if (result.substring(12,14) == "84"){
@@ -236,21 +200,17 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         }
     }
 
-
     private fun onNotificationSetupFailure(throwable: Throwable){
-
         Log.i(TAG, "onNotificationSetupFailure: $throwable")
         Toast.makeText(context, throwable.message, Toast.LENGTH_SHORT).show()
-
     }
 
-    private  fun  allowEdit(allow: Boolean){
+    private fun allowEdit(allow: Boolean){
         deviceFragmentBinding.etCarNum.setEnabled(allow)
         deviceFragmentBinding.etIdentify.setEnabled(allow)
         deviceFragmentBinding.etLength.setEnabled(allow)
         deviceFragmentBinding.etWidth.setEnabled(allow)
         deviceFragmentBinding.etHeight.setEnabled(allow)
-        deviceFragmentBinding.etCompare.setEnabled(allow)
     }
 
     private fun saveInfo(){
@@ -259,13 +219,12 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         val length = deviceFragmentBinding.etLength.text.toString()
         val width = deviceFragmentBinding.etWidth.text.toString()
         val height = deviceFragmentBinding.etHeight.text.toString()
-        val compare = deviceFragmentBinding.etCompare.text.toString()
 
         Log.i(TAG, "onClick: save identify $identify   --->${"001A".toInt(16)}")
         Log.i(TAG, "onClick: Save Identify $identify   --->${identify.toInt(16)}")
         lifecycleScope.launch{
             val id = identify.toInt(16)
-            var device: Device = Device(id ,identify, deviceFragmentBinding.etCarNum.text.toString(),length, width, height, compare, "","",macAddress)
+            var device: Device = Device(id ,identify, deviceFragmentBinding.etCarNum.text.toString(),length, width, height, "FFFF", "","",macAddress)
             viewModel.addNewDevice(device)
         }
     }
@@ -302,14 +261,11 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
                         val length = deviceFragmentBinding.etLength.text.toString()
                         val width = deviceFragmentBinding.etWidth.text.toString()
                         val height = deviceFragmentBinding.etHeight.text.toString()
-                        val compare = deviceFragmentBinding.etCompare.text.toString()
-//                        val compare = "FFFF"
+                        val compare = "FFFF"
 
                         if (carNum.isEmpty() || identify.isEmpty() || length.isEmpty() || width.isEmpty() || height.isEmpty() || compare.isEmpty()){
                             Toast.makeText(context, getString(R.string.enter_complete_data), Toast.LENGTH_SHORT).show()
                         }else {
-                            //todo save data to db in notify success
-                            //todo already connect
                             setDeviceInfo(carNum,identify,length, width, height, compare)
                         }
                     }
@@ -365,23 +321,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ onWriteSuccess() }, { onWriteFailure(it) })
             .let { connectionDisposable.add(it) }
-
-        /*if (bleDevice.isConnected) {
-            Log.i(TAG, "getDeviceInfo: isConnected --> write")
-            connectionObservable
-                .firstOrError()
-                .flatMap { it.writeCharacteristic(Contants.WRITE_UUID, inputBytes) }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ onWriteSuccess() }, { onWriteFailure(it) })
-                .let { connectionDisposable.add(it) }
-        }else {
-            Log.i(TAG, "getDeviceInfo: disConnected --> write")
-
-            mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ onWriteSuccess() }, { onWriteFailure(it) })
-                .let { connectionDisposable.add(it) }
-        }*/
     }
 
     private fun setDeviceInfo(carNum: String, identify: String, length: String, width: String, height: String, compare: String) {
@@ -407,8 +346,7 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         data.append(length.toDoubleByte()) //lenght
         data.append(width.toDoubleByte())  //width
         data.append(height.toDoubleByte())  //height
-        data.append(compare.toDoubleByte())
-//        data.append(compare)
+        data.append(compare)
 
         var sum = 0
         for (i in 0 until data.length/2){
@@ -450,42 +388,4 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         Log.i(TAG, "onWriteFailure: ${throwable.message}")
         
     }
-
-    private var co: Disposable = CompositeDisposable()
-
-    private fun test(){
-
-
-        val write = "0201ff00000185116b03"
-        co = mConnection.setupNotification(Contants.test)
-                .flatMap<ByteArray>(Function<Observable<ByteArray>, ObservableSource<out ByteArray>> { ob: Observable<ByteArray>? ->
-                    Observable.merge(
-                        mConnection.writeCharacteristic(
-                            Contants.test,
-                            write.toByteArray().hex2byte()
-                        ).toObservable(),
-                        ob // observing log data notifications
-                    )
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableObserver<ByteArray?>() {
-                    override fun onNext(bytes: ByteArray) {
-                        Log.i(TAG, "  -onNext--->>>>$bytes --->${bytes.toHex()}")
-
-                        Log.i(TAG, "  -onNext--->>>>" + bytes.toHexString())
-                    }
-
-                    override fun onError(e: Throwable) {
-                        Log.i(TAG, "onError: update $e")
-                        e.printStackTrace()
-                    }
-
-                    override fun onComplete() {
-                        Log.i(TAG, "onComplete: ???!! ")
-                    }
-                })
-        connectionDisposable.add(co)
-    }
-
-
 }

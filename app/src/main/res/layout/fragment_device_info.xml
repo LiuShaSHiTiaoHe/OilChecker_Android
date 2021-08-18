@@ -229,44 +229,7 @@
                 app:layout_constraintEnd_toEndOf="@id/et_height"
                 app:layout_constraintBottom_toBottomOf="@id/et_height"/>
 
-            <TextView
-                android:id="@+id/tv_compare"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:textColor="@color/black"
-                android:text="@string/comparison_voltage"
-                android:layout_marginTop="20dp"
-                android:layout_marginStart="15dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/et_height"
-                />
-            <EditText
-                android:id="@+id/et_compare"
-                android:layout_width="match_parent"
-                android:layout_height="42dp"
-                android:layout_marginStart="15dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="15dp"
-                android:paddingStart="10dp"
-                android:inputType="numberDecimal"
-                android:maxLines="1"
-                android:maxLength="5"
-                android:hint="@string/comparison_voltage"
-                android:background="@drawable/bg_rectangle_gray"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_compare"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="v"
-                android:textSize="16sp"
-                android:textColor="@color/black"
-                android:layout_marginEnd="10dp"
-                app:layout_constraintTop_toTopOf="@id/et_compare"
-                app:layout_constraintEnd_toEndOf="@id/et_compare"
-                app:layout_constraintBottom_toBottomOf="@id/et_compare"/>
             <Button
                 android:id="@+id/btn_save"
                 android:layout_width="match_parent"
@@ -278,7 +241,7 @@
                 android:layout_marginStart="15sp"
                 android:layout_marginEnd="15sp"
                 android:layout_marginTop="20dp"
-                app:layout_constraintTop_toBottomOf="@id/et_compare"/>
+                app:layout_constraintTop_toBottomOf="@id/et_height"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

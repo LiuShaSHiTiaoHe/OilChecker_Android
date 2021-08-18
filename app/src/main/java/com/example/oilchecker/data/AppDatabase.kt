@@ -8,13 +8,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.oilchecker.data.Dao.*
 import com.example.oilchecker.data.entity.*
 
-@Database(entities = [Device::class, Fuel::class, FuelConsume::class ,Refuel::class , FuelChange::class], version = 1, exportSchema = false)
+@Database(entities = [Device::class, Fuel::class, FuelConsume::class ,Refuel::class , FuelChange::class, MalfunctionModel::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun deviceDao(): DeviceDao
     abstract fun fuelDataDao(): FuelDataDao
     abstract fun fuelConsuemDataDao(): FuelConsumeDao
     abstract fun refuelDataDao(): RefuelDao
     abstract fun fuelChangeDao(): FuelChangeDao
+    abstract fun malfunctionDao(): MalfunctionDao
 
 
     companion object{

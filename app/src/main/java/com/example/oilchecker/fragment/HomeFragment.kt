@@ -24,6 +24,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import dagger.hilt.android.AndroidEntryPoint
 import khronos.*
 import kotlinx.coroutines.*
+import java.lang.StringBuilder
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), View.OnClickListener{
@@ -48,7 +49,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
         super.onViewCreated(view, savedInstanceState)
         binding = HomeFragmentBinding.bind(view)
         viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-
         binding.tvCarNum.setOnClickListener(this)
         binding.leftButton.setOnClickListener(this)
         binding.rightButton.setOnClickListener(this)
@@ -154,7 +154,6 @@ class HomeFragment : Fragment(), View.OnClickListener{
 
     override fun onResume() {
         super.onResume()
-        Log.i(TAG, "onResume:")
 
     }
 

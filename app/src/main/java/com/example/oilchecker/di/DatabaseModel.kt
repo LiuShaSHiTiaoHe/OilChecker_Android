@@ -2,11 +2,8 @@ package com.example.oilchecker.di
 
 import android.content.Context
 import com.example.oilchecker.data.AppDatabase
-import com.example.oilchecker.data.Dao.DeviceDao
-import com.example.oilchecker.data.Dao.FuelConsumeDao
-import com.example.oilchecker.data.Dao.FuelDataDao
-import com.example.oilchecker.data.Dao.RefuelDao
-import com.example.oilchecker.data.Dao.FuelChangeDao
+import com.example.oilchecker.data.Dao.*
+import com.example.oilchecker.data.entity.MalfunctionModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,5 +43,10 @@ class DatabaseModel {
     @Provides
     fun provideRefuelDataDao(appDatabase: AppDatabase): RefuelDao {
         return appDatabase.refuelDataDao()
+    }
+
+    @Provides
+    fun provideMalfuntionDao(appDatabase: AppDatabase): MalfunctionDao{
+        return  appDatabase.malfunctionDao()
     }
 }

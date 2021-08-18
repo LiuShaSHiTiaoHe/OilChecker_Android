@@ -79,7 +79,8 @@
     <string name="set_dev_fail">设备参数设置失败</string>
     <string name="sync_fail">同步失败，请重试</string>
     <string name="disconnect">连接已断开</string>
-
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 
 </resources>
