@@ -26,7 +26,6 @@ class MainApplication : Application(){
 
     override fun onCreate() {
         super.onCreate()
-      //  rxBleClient = RxBleClient.create(this)
         rxBleClient = RxBleClient.create(this)
         MMKV.initialize(this)
         instances = this

@@ -14,7 +14,6 @@ internal class ScanResultsAdapter(
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val device : TextView = itemView.findViewById(R.id.tv_name)
-        val rssi : TextView = itemView.findViewById(R.id.tv_rssi)
         val view = itemView
     }
 
@@ -55,11 +54,7 @@ internal class ScanResultsAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         with(data[position]) {
-//            holder.device.text = String.format("%s (%s)", bleDevice.macAddress, bleDevice.name)
             holder.device.text = String.format("%s", bleDevice.name)
-            // holder.rssi.text = String.format("RSSI: %d", rssi)
-//            holder.device.setOnClickListener{onClickListener(this)}
-//            holder.itemView.setOnClickListener{ onClickListener(this)}
             holder.view.setOnClickListener{onClickListener(this)}
         }
     }

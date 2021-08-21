@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -31,7 +32,6 @@ class StatisticFragment : Fragment(), View.OnClickListener{
     }
 
     private lateinit var binding: StatisticFragmentBinding
-//    private lateinit var viewModel: StatisticViewModel
     private lateinit var homeViewModel: HomeViewModel
     private var type: String = ""
     private var currentDevice: String = ""
@@ -74,34 +74,33 @@ class StatisticFragment : Fragment(), View.OnClickListener{
         updateTimeRang()
 
         homeViewModel.fuelChartLiveData.observe(viewLifecycleOwner, Observer {
-            initFuelChart(it)
+            if (it.size > 0){
+                initFuelChart(it)
+                binding.chartFuel.isGone = false
+                binding.placeholderFuelRecord.isGone = true
+            }
         })
 
         homeViewModel.consumptionChartLiveData.observe(viewLifecycleOwner, Observer {
-            initConsumptionChart(it)
+            if (it.size > 0){
+                initConsumptionChart(it)
+                binding.chartConsumption.isGone = false
+                binding.placeholderConsumption.isGone = true
+            }
         })
 
         homeViewModel.refuelChartLiveData.observe(viewLifecycleOwner, Observer {
-            initRefuelChart(it)
+            if (it.size > 0){
+                initRefuelChart(it)
+                binding.chartRefuel.isGone = false
+                binding.placeholderRefuelRecord.isGone = true
+            }
         })
 
         currentDevice = UserPreference.getDevice().toString()
         if(currentDevice.isNotEmpty()){
             homeViewModel.getChartStyleFuelData()
         }
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-//        viewModel = ViewModelProvider(this).get(StatisticViewModel::class.java)
-//        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-
-        // TODO: Use the ViewModel
-
-
-
-
-
     }
 
     override fun onResume() {
@@ -141,13 +140,17 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             }
         }
 
-        val linedataset = BarDataSet(lineEntry, requireContext().getString(R.string.fuel_record))
+        val linedataset = BarDataSet(lineEntry, requireContext().getString(R.string.fuel_record) + " (L)")
         linedataset.color = requireContext().getColor(R.color.red)
         val data = BarData(linedataset)
         chart.data = data
         chart.axisLeft.axisMinimum = 0.0F
         chart.description.isEnabled = false
         chart.axisRight.isEnabled = false
+        chart.isDragEnabled = false
+        chart.setScaleEnabled(false)
+        chart.isDoubleTapToZoomEnabled = false
+        chart.isHighlightPerTapEnabled = false
         chart.setBackgroundColor(requireContext().getColor(R.color.white))
         chart.animateXY(30, 30)
         chart.invalidate()
@@ -178,13 +181,17 @@ class StatisticFragment : Fragment(), View.OnClickListener{
                 setLabelCount(dataList.size, false)
             }
         }
-        val linedataset = BarDataSet(lineEntry, resources.getString(R.string.consumption_record))
+        val linedataset = BarDataSet(lineEntry, resources.getString(R.string.consumption_record) + " (L)")
         linedataset.color = requireContext().getColor(R.color.red)
         val data = BarData(linedataset)
         chart.data = data
         chart.axisLeft.axisMinimum = 0.0F
         chart.description.isEnabled = false
         chart.axisRight.isEnabled = false
+        chart.isDragEnabled = false
+        chart.setScaleEnabled(false)
+        chart.isDoubleTapToZoomEnabled = false
+        chart.isHighlightPerTapEnabled = false
         chart.setBackgroundColor(requireContext().getColor(R.color.white))
         chart.invalidate()
     }
@@ -214,7 +221,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
                 setLabelCount(dataList.size, false)
             }
         }
-        val linedataset = BarDataSet(lineEntry, resources.getString(R.string.refuel_record))
+        val linedataset = BarDataSet(lineEntry, resources.getString(R.string.refuel_record) + " (L)")
         linedataset.color = requireContext().getColor(R.color.theme)
 
         val data = BarData(linedataset)
@@ -222,6 +229,10 @@ class StatisticFragment : Fragment(), View.OnClickListener{
         chart.axisLeft.axisMinimum = 0.0F
         chart.description.isEnabled = false
         chart.axisRight.isEnabled = false
+        chart.isDragEnabled = false
+        chart.setScaleEnabled(false)
+        chart.isDoubleTapToZoomEnabled = false
+        chart.isHighlightPerTapEnabled = false
         chart.setBackgroundColor(requireContext().getColor(R.color.white))
         chart.invalidate()
 

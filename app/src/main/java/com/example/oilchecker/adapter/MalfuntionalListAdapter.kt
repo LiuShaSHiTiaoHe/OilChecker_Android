@@ -4,9 +4,11 @@ import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.example.oilchecker.data.entity.MalfunctionModel
 import com.example.oilchecker.databinding.ItemMalfuntionBinding
+import com.example.oilchecker.fragment.MalfuntionRecordViewModel
 import com.example.oilchecker.util.toDateStr
 
 class MalfuntionalListAdapter: RecyclerView.Adapter<MalfuntionalListAdapter.ViewHolder>(){

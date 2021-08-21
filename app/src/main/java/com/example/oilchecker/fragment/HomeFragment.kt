@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -14,7 +15,9 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.oilchecker.R
 import com.example.oilchecker.adapter.HomeViewDataListAdapter
+import com.example.oilchecker.data.AppDatabase
 import com.example.oilchecker.data.entity.FuelChange
+import com.example.oilchecker.data.entity.MalfunctionModel
 import com.example.oilchecker.databinding.HomeFragmentBinding
 import com.example.oilchecker.util.*
 import com.github.mikephil.charting.components.XAxis
@@ -52,6 +55,8 @@ class HomeFragment : Fragment(), View.OnClickListener{
         binding.tvCarNum.setOnClickListener(this)
         binding.leftButton.setOnClickListener(this)
         binding.rightButton.setOnClickListener(this)
+        binding.settingInfoLlPhoto.isGone = true
+        binding.emptyTips.isGone = false
         binding.llSync.clickWithTrigger {
             val mac = UserPreference.getMac()
             binding.progressBar.visibility = View.VISIBLE
@@ -115,25 +120,29 @@ class HomeFragment : Fragment(), View.OnClickListener{
             for (item in it){
                 if (item.type == FuelChangedType.REFUEL.type){
                     refuelArray.add(item)
-                    totalConsumption += item.fuelData!!
+                    totalRefuel += item.fuelData!!
                 }else{
                     consumptionArray.add(item)
-                    totalRefuel += item.fuelData!!
+                    totalConsumption += item.fuelData!!
                 }
             }
 
             binding.ssRefuelrecord.text = refuelArray.size.toString() + " " + requireContext().getString(R.string.home_refuel_times)
-            binding.ssTotalrefuel.text = totalRefuel.toString() + " L"
+            binding.ssTotalrefuel.text =  String.format("%.1f", totalRefuel) + " L"
             binding.ssRefuelrecord.setTextColor(requireContext().getColor(R.color.theme))
             binding.ssTotalrefuel.setTextColor(requireContext().getColor(R.color.theme))
 
             binding.ssUnusualrecordcount.text = consumptionArray.size.toString() + " " + requireContext().getString(R.string.home_refuel_times)
-            binding.ssUnusualrecord.text = totalConsumption.toString() + " L"
+            binding.ssUnusualrecord.text = String.format("%.1f", totalConsumption) + " L"
             binding.ssUnusualrecordcount.setTextColor(requireContext().getColor(R.color.red))
             binding.ssUnusualrecord.setTextColor(requireContext().getColor(R.color.red))
             listAdapter.apply {
-                listAdapter.addFuelChanges(it)
-                listAdapter.notifyDataSetChanged()
+                if (it.size > 0){
+                    binding.settingInfoLlPhoto.isGone = false
+                    binding.emptyTips.isGone = true
+                    listAdapter.addFuelChanges(it)
+                    listAdapter.notifyDataSetChanged()
+                }
             }
         })
         updateTimeRang()
@@ -220,14 +229,17 @@ class HomeFragment : Fragment(), View.OnClickListener{
                 "fail" -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
+                    context?.let { it1 -> viewModel.recordMalfuntion(it1.getString(R.string.sync_fail)) }
                 }
                 ToastTips.B_ConnectFailed -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.connect_fail, Toast.LENGTH_SHORT).show()
+                    context?.let { it1 -> viewModel.recordMalfuntion(it1.getString(R.string.connect_fail)) }
                 }
                 ToastTips.B_SendDataFailed -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     Toast.makeText(context, R.string.sync_fail, Toast.LENGTH_SHORT).show()
+                    context?.let { it1 -> viewModel.recordMalfuntion(it1.getString(R.string.sync_fail)) }
                 }
                 ToastTips.B_Disconnect -> {
                     binding.progressBar.visibility = View.INVISIBLE
@@ -236,4 +248,5 @@ class HomeFragment : Fragment(), View.OnClickListener{
             }
         })
     }
+
 }

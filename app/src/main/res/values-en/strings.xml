@@ -62,8 +62,6 @@
     <string name="inputErrorData">Unexpected Paramaters</string>
     <string name="setAppParamatersSuccess">Setting Success</string>
 
-
-
     <string name="ble_not_available">Bluetooth is not available</string>
     <string name="open_ble">Enable bluetooth and try again</string>
     <string name="location_permission_missing">On Android 6.0 location permission is required</string>
@@ -83,7 +81,8 @@
     <string name="sync_fail">Synchronization failed, please try again</string>
     <string name="disconnect">Device is disconnected</string>
 
-
+    <!-- Base -->
+    <string name="no_data">No records</string>
 
 
 

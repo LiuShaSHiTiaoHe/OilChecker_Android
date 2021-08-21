@@ -85,8 +85,8 @@ class SettingFragment : Fragment(), View.OnClickListener {
                 v.findNavController().navigate(direction)
             }
             R.id.ll_list -> {
-                //fault
-
+                val direction = SettingFragmentDirections.actionSettingFragmentToMalfuntionalrecordsFragment()
+                v.findNavController().navigate(direction)
             }
             R.id.ll_search -> {
                 val direction = SettingFragmentDirections.actionSettingFragmentToBleDeviceFragment()

@@ -47,6 +47,9 @@
         <action
             android:id="@+id/action_setting_fragment_to_settingappparamatersFragment"
             app:destination="@id/settingappparamatersFragment" />
+        <action
+            android:id="@+id/action_setting_fragment_to_malfuntionalrecordsFragment"
+            app:destination="@+id/malfuntionalFragment"/>
     </fragment>
     <fragment
         android:id="@+id/selectCarFragment"
@@ -103,4 +106,9 @@
         android:name="com.example.oilchecker.fragment.SettingAppParametersFragment"
         android:label="setting_app_paramaters"
         tools:layout="@layout/fragment_setting_app_parameters"/>
+    <fragment
+        android:id="@+id/malfuntionalFragment"
+        android:name="com.example.oilchecker.fragment.MalfuntionRecordFragment"
+        android:label="malfuntional_records"
+        tools:layout="@layout/fragment_malfuntion_record"/>
 </navigation>

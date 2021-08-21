@@ -39,7 +39,7 @@ object SpUtils {
     }
 
     fun getInt(key: String): Int? {
-        return mmkv?.decodeInt(key, 0)
+        return mmkv?.decodeInt(key, -1)
     }
 
     fun getDouble(key: String): Double? {

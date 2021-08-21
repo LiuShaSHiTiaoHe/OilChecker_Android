@@ -167,14 +167,13 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
     private fun onNotificationReceived(bytes: ByteArray) {
         Log.i(TAG, "---onNext--->>>>$bytes --->${bytes.toHex()}")
         val result = bytes.toHex()
-        if (result.length > 14){
+        if (result.length > 16){
             if (result.substring(12,14) == "86"){
                 val identify = result.substring(14,18)
                 val length = result.substring(18,22).toInt(16).toString()
                 val width = result.substring(22,26).toInt(16).toString()
                 val height = result.substring(26,30).toInt(16).toString()
                 val compare = result.substring(30,34).toInt(16).toString()
-
                 deviceFragmentBinding.etIdentify.text = Editable.Factory.getInstance().newEditable(identify)
                 deviceFragmentBinding.etLength.text = Editable.Factory.getInstance().newEditable(length)
                 deviceFragmentBinding.etWidth.text = Editable.Factory.getInstance().newEditable(width)
@@ -193,6 +192,7 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
                 }else{
                     Log.i(TAG, "onNotificationReceived: set fail")
                     Toast.makeText(context, R.string.set_dev_fail, Toast.LENGTH_SHORT).show()
+                    viewModel.recordMalfuntion(requireContext().getString(R.string.set_dev_fail))
                 }
 
             }
@@ -329,12 +329,9 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         Log.i(TAG, "setDeviceInfo: length -> ${length.toString().toInt().toString(16)}")
         var dataLen = 10.toString(16)   //数据长度 1字节
         val len = (256 - 10).toString(16) //数据长补数 1字节
-        Log.i(TAG, "onClick:$dataLen ->  $len")
-
         if (dataLen.length == 1){
             dataLen = "0$dataLen"
         }
-
         val data = StringBuilder()
         data.append(dataLen)
         data.append(len)
@@ -365,11 +362,7 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
         val write = result.toString()
         Log.i(TAG, "-->onClick: $write")
-
         val inputBytes: ByteArray = write.toByteArray()
-
-        Log.i(TAG, "setDeviceInfo: connect state -> ${bleDevice.isConnected}")
-
         if(bleDevice.isConnected) {
             mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes.hex2byte())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -386,6 +379,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
     private fun onWriteFailure(throwable: Throwable){
         Log.i(TAG, "onWriteFailure: ${throwable.message}")
-        
+        viewModel.recordMalfuntion(requireContext().getString(R.string.sync_fail))
     }
 }

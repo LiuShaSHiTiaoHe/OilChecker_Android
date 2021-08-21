@@ -31,8 +31,10 @@ class HomeViewDataListAdapter: RecyclerView.Adapter<HomeViewDataListAdapter.View
                     tvAction.setTextColor(context!!.resources.getColor(R.color.red))
                     tvData.setTextColor(context!!.resources.getColor(R.color.red))
                 }
-                tvData.text = data.fuelData.toString() + "L"
+//                tvData.text = data.fuelData.toString() + "L"
+                tvData.text = String.format("%.1f",data.fuelData) + "L"
             }
+
         }
     }
 

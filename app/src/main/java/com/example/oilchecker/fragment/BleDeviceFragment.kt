@@ -37,14 +37,11 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
     private val TAG = "BleDeviceFragment"
     private val rxBleClient = MainApplication.rxBleClient
     private var scanDisposable: Disposable?= null
-
     private var hasClickedScan = false
     private var isScanning: Boolean= scanDisposable != null
     private val resultsAdapter = ScanResultsAdapter {
-
         scanDisposable?.dispose()
         scanDisposable = null
-//        sleep(1000)
         val mac = it.bleDevice.macAddress
         Log.i(TAG, "scanResult: onclick --> ${it.bleDevice.macAddress} ")
         val direction = BleDeviceFragmentDirections.actionBleDeviceFragmentToDeviceInfoFragment(mac)
@@ -126,9 +123,7 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
                     .let { scanDisposable = it }
             }else {
                 hasClickedScan = true
-               // val activity = context as MainActivity
                 val activity = FragmentComponentManager.findActivity(view?.context) as Activity
-
                 activity.requestLocationPermission(rxBleClient)
             }
         }
@@ -141,22 +136,10 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
                 .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
                 .build(),
             ScanFilter.Builder()
-                // .setDeviceAddress("88:3F:4A:E5:CF:6C")
-                //.setDeviceName("")
                 .build()
         )
     }
 
-
-    private fun displayResult(result: ScanResult){
-        val name = result.bleDevice.name
-        val na = result.bleDevice.bluetoothDevice.name
-        val mac = result.bleDevice.macAddress
-
-        Log.e(TAG, "--name---$name----mac---$mac")
-
-
-    }
 
     private fun onScanFailure(throwable: Throwable) {
         Log.i(TAG, "scan fail")
@@ -164,6 +147,7 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
         if (throwable is BleScanException) {
             handleBleScanException(throwable)
         }
+        viewModel.recordMalfuntion(requireContext().getString(R.string.connect_fail))
     }
 
     private fun handleBleScanException(bleScanException: BleScanException) {
@@ -199,8 +183,7 @@ class BleDeviceFragment : Fragment(), View.OnClickListener {
     }
 
     private fun dispose() {
-//        scanDisposable = null
-//        resultsAdapter.clearScanResults()
+
     }
 
     override fun onRequestPermissionsResult(

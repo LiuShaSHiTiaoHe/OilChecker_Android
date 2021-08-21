@@ -7,8 +7,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class MalfunctionModel(
-    @PrimaryKey
-    @ColumnInfo(name = "id") var id: Int?,
+    @PrimaryKey(autoGenerate = true) var id: Int,
     @ColumnInfo(name = "device_id") var deviceId: String?,
     @ColumnInfo(name = "errorCode") var errorCode: String?,
     @ColumnInfo(name = "errorDes") var errorDes: String?,

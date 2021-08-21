@@ -12,5 +12,6 @@ interface FuelDataDao {
     suspend fun insertFuelData(data: List<Fuel>)
     @Query("SELECT * FROM Fuel WHERE device_id = :id")
     fun getFuelData(id: String): List<Fuel>
-
+    @Query("SELECT * FROM FUEL WHERE record_time_interval > :start AND record_time_interval < :end AND device_id = :id")
+    fun getFuelDataInTimeRange(start: Long, end: Long, id: String): List<Fuel>
 }

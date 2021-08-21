@@ -10,7 +10,7 @@ import com.example.oilchecker.data.entity.MalfunctionModel
 @Dao
 interface MalfunctionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMalfunctionData(data: List<MalfunctionModel>)
+    suspend fun insertMalfunctionData(data: MalfunctionModel)
     @Query("SELECT * FROM MalfunctionModel WHERE device_id = :id")
     fun getMalfunctionData(id: String): List<MalfunctionModel>
 }

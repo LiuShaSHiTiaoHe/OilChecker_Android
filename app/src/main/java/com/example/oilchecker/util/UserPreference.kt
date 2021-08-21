@@ -54,10 +54,10 @@ class UserPreference {
 
         fun getSegmentIndex(): Int{
             val value = SpUtils.getInt("segmentIndex")
-            if (value == null){
+            if (value == -1){
                 return  2
             }else{
-                return  value
+                return  value!!
             }
         }
 
@@ -67,10 +67,10 @@ class UserPreference {
 
         fun getDateOffset(): Int{
             val value = SpUtils.getInt("DateOffset")
-            if (value == null){
+            if (value == -1){
                 return  0
             }else{
-                return  value
+                return  value!!
             }
         }
     }
