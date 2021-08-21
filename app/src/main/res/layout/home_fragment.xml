@@ -10,17 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/tv_home"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_marginStart="15dp"
-            android:textSize="42sp"
-            android:textColor="@color/black"
-            android:text="@string/home"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+
         <TextView
             android:id="@+id/tv_car_num"
             android:layout_width="0dp"
@@ -36,7 +26,7 @@
             android:background="@drawable/bg_rectangle_white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/gl_v5"
-            app:layout_constraintTop_toBottomOf="@id/tv_home"/>
+            app:layout_constraintTop_toTopOf="parent"/>
         <LinearLayout
             android:id="@+id/ll_sync"
             android:layout_width="0dp"
@@ -49,7 +39,7 @@
             android:background="@drawable/bg_rectangle_white"
             app:layout_constraintStart_toStartOf="@id/gl_v5"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_home">
+            app:layout_constraintTop_toTopOf="parent">
             <ImageView
                 android:id="@+id/iv_sync"
                 android:layout_width="22dp"

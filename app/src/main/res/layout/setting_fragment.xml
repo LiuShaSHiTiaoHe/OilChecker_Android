@@ -7,18 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     tools:context=".fragment.SettingFragment">
-    <TextView
-        android:id="@+id/tv_set"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/setting"
-        android:textSize="28dp"
-        android:textColor="@color/black"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="20dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
+
     <LinearLayout
         android:id="@+id/ll_add"
         android:layout_width="match_parent"
@@ -28,7 +17,7 @@
         android:layout_marginEnd="15dp"
         android:gravity="center"
         android:background="@drawable/bg_rectangle_green"
-        app:layout_constraintTop_toBottomOf="@id/tv_set">
+        app:layout_constraintTop_toTopOf="parent">
         <ImageView
             android:id="@+id/iv_device"
             android:layout_width="30dp"
@@ -47,11 +36,11 @@
         android:id="@+id/ll_devices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="25dp"
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tv_set">
+        app:layout_constraintTop_toTopOf="parent">
         <ImageView
             android:layout_width="30dp"
             android:layout_height="30dp"
