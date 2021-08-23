@@ -34,6 +34,7 @@
     <string name="fault_record">故障记录</string>
     <string name="search">搜索设备</string>
     <string name="device_list">设备列表</string>
+    <string name="back">返回</string>
 
     <string name="fuelchanged_refuel">加油</string>
     <string name="fuelchanged_unusual">异常</string>

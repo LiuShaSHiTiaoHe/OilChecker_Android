@@ -634,10 +634,11 @@ class HomeViewModel @Inject constructor(
 
     fun getTimeRange() : ArrayList<String>{
         val segmentIndex = UserPreference.getSegmentIndex()
-        val today = Dates.today
         val offset = UserPreference.getDateOffset()
         var startDate = ""
         var endDate = ""
+        val today = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())
+
 
         when (segmentIndex){
             0 -> {
@@ -665,8 +666,7 @@ class HomeViewModel @Inject constructor(
                 endDate = endOfYear.toString("yyyy-MM-dd HH:mm:ss")
             }
         }
-        val todayString = today.beginningOfMonth.toString("yyyy-MM-dd HH:mm:ss")
-        Log.i(TAG, "$startDate ------- $endDate -----$offset-----$todayString")
+        Log.i(TAG, "$startDate ------- $endDate -----$offset")
         val rangList = ArrayList<String>()
         rangList.add(startDate)
         rangList.add(endDate)
@@ -695,6 +695,8 @@ class HomeViewModel @Inject constructor(
                     }
                 }
                 fuelLiveData.postValue(newFuelList)
+
+
                 //油量变化数据
                 var newFuelChangedList = ArrayList<FuelChange>()
                 for (item in fuelChangedDataList){
@@ -702,66 +704,108 @@ class HomeViewModel @Inject constructor(
                         newFuelChangedList.add(item)
                     }
                 }
-                var sortedFuelChangedList = ArrayList<FuelChange>()
-                var consumptionCount = 0
-
-                for (item in newFuelChangedList) {
-                    if (item.type == FuelChangedType.REFUEL.type) {
-                        consumptionCount = 0
-                        if (sortedFuelChangedList.size > 0){
-                            val lastOne = sortedFuelChangedList.last()
-                            if (lastOne.type == item.type){//连续的加油记录，合并处理
-                                val model = FuelChange(item.id,item.type,item.deviceId,item.fuelData!! + lastOne.fuelData!!,item.recordTime, item.recordTimeInterval)
-                                sortedFuelChangedList.removeLast()
-                                sortedFuelChangedList.add(model)
-                            }else{
-                                sortedFuelChangedList.add(item)
-                            }
-                        }else{
-                            sortedFuelChangedList.add(item)
-                        }
-                    }else{
-                        consumptionCount++
-                        if (sortedFuelChangedList.size > 0){
-                            val lastOne = sortedFuelChangedList.last()
-                            if (lastOne.type == item.type){
-                                var totalConsumprion = item.fuelData!! + lastOne.fuelData!!
-                                if (totalConsumprion > threshold){
-                                    if (totalConsumprion/consumptionCount > 1){
-                                        val model = FuelChange(item.id,item.type,item.deviceId,item.fuelData!! + lastOne.fuelData!!,item.recordTime, item.recordTimeInterval)
-                                        sortedFuelChangedList.removeLast()
-                                        sortedFuelChangedList.add(model)
-                                    }else{
-                                        sortedFuelChangedList.removeLast()
-                                        consumptionCount = 0
-                                    }
-                                }else{
-                                    val model = FuelChange(item.id,item.type,item.deviceId,item.fuelData!! + lastOne.fuelData!!,item.recordTime, item.recordTimeInterval)
-                                    sortedFuelChangedList.removeLast()
-                                    sortedFuelChangedList.add(model)
-                                }
-                            }else{
-                                sortedFuelChangedList.add(item)
-                            }
-                        }else{
-                            sortedFuelChangedList.add(item)
-                        }
-                    }
-                }
-//                fuelChangedLiveData.postValue(newFuelChangedList)
+                newFuelChangedList.sortBy { it.recordTimeInterval }
+                var sortedFuelChangedList = getSortedUnusualFuelChangedData(newFuelChangedList)
                 fuelChangedLiveData.postValue(sortedFuelChangedList)
             }
         }
     }
 
+    fun getSortedUnusualFuelChangedData(newFuelChangedList: ArrayList<FuelChange>) : ArrayList<FuelChange>{
+        var sortedFuelChangedList = ArrayList<FuelChange>()
+        var consumptionCount = 0
+        val threshold = UserPreference.getThreshold()
+
+        for (item in newFuelChangedList) {
+            if (item.type == FuelChangedType.REFUEL.type) {
+                consumptionCount = 0
+                if (sortedFuelChangedList.size > 0){
+                    val lastOne = sortedFuelChangedList.last()
+                    val lastTimeInterval = lastOne.recordTimeInterval!!.toLong()
+                    val currentTimeInterval = item.recordTimeInterval!!.toLong()
+                    val interval = currentTimeInterval - lastTimeInterval
+                    val fixation: Long = 60000
+                    if (lastOne.type == item.type){//连续的加油记录，并且时间连续,合并处理
+                        if (interval == fixation){
+                            val model = FuelChange(item.id,item.type,item.deviceId,item.fuelData!! + lastOne.fuelData!!,item.recordTime, item.recordTimeInterval)
+                            sortedFuelChangedList.removeLast()
+                            sortedFuelChangedList.add(model)
+                        }else{
+                            if (lastOne.fuelData!! < threshold){
+                                sortedFuelChangedList.removeLast()
+                            }
+                            sortedFuelChangedList.add(item)
+                        }
+                    }else{
+                        if (lastOne.fuelData!! < threshold){
+                            sortedFuelChangedList.removeLast()
+                        }
+                        sortedFuelChangedList.add(item)
+                    }
+                }else{
+                    sortedFuelChangedList.add(item)
+                }
+            }else{
+                consumptionCount++
+                if (sortedFuelChangedList.size > 0){
+                    val lastOne = sortedFuelChangedList.last()
+                    val lastTimeInterval = lastOne.recordTimeInterval!!.toLong()
+                    val currentTimeInterval = item.recordTimeInterval!!.toLong()
+                    val interval = currentTimeInterval - lastTimeInterval
+                    val fixation: Long = 60000
+
+                    if (lastOne.type == item.type){
+                        if (interval == fixation){
+                            var totalConsumprion = item.fuelData!! + lastOne.fuelData!!
+                            if (totalConsumprion > threshold){
+                                if (totalConsumprion/consumptionCount > 1){
+                                    val model = FuelChange(item.id,item.type,item.deviceId,item.fuelData!! + lastOne.fuelData!!,item.recordTime, item.recordTimeInterval)
+                                    sortedFuelChangedList.removeLast()
+                                    sortedFuelChangedList.add(model)
+
+                                }else{
+                                    sortedFuelChangedList.removeLast()
+                                    consumptionCount = 0
+                                }
+                            }else{
+                                val model = FuelChange(item.id,item.type,item.deviceId,item.fuelData!! + lastOne.fuelData!!,item.recordTime, item.recordTimeInterval)
+                                sortedFuelChangedList.removeLast()
+                                sortedFuelChangedList.add(model)
+                            }
+                        }else{
+                            consumptionCount = 0
+                            if (lastOne.fuelData!! < threshold){
+                                sortedFuelChangedList.removeLast()
+                            }
+                            sortedFuelChangedList.add(item)
+                        }
+                    }else{
+                        if (lastOne.fuelData!! < threshold){
+                            sortedFuelChangedList.removeLast()
+                        }
+                        sortedFuelChangedList.add(item)
+                    }
+                }else{
+                    sortedFuelChangedList.add(item)
+                }
+            }
+        }
+        if (sortedFuelChangedList.size > 0){
+            val lastOne = sortedFuelChangedList.last()
+            if (lastOne.fuelData!! < threshold){
+                sortedFuelChangedList.removeLast()
+            }
+        }
+
+        return sortedFuelChangedList
+    }
 
     fun getChartStyleFuelData(){
         viewModelScope.launch {
             async(Dispatchers.Default) {
                 val id = UserPreference.getIdentify() ?: return@async
                 val list = database.fuelDataDao().getFuelData(id)
-                val threshold = UserPreference.getThreshold()
-                val fuelChangedDataList = database.fuelChangeDao().getFuelChangedData(id)
+                val originalFuelChangedDataList = database.fuelChangeDao().getFuelChangedData(id)
                 val timeRange = getTimeRange()
                 val startDateTime = timeRange[0].toDateLong()
                 val endDateTime = timeRange[1].toDateLong()
@@ -769,6 +813,15 @@ class HomeViewModel @Inject constructor(
                 var chartFuelArray = ArrayList<ChartDateModel>()
                 var chartRefuelArray = ArrayList<ChartDateModel>()
                 var chartconsumptionArray = ArrayList<ChartDateModel>()
+
+                var beforeSortFuelChangedDataList = ArrayList<FuelChange>()
+                for (item in originalFuelChangedDataList){
+                    if (item.recordTimeInterval!! > startDateTime && item.recordTimeInterval!! < endDateTime){
+                        beforeSortFuelChangedDataList.add(item)
+                    }
+                }
+                var fuelChangedDataList = getSortedUnusualFuelChangedData(beforeSortFuelChangedDataList)
+
                 when (segmentIndex){
                     0 -> {
                         for (index in 0 until 24){
@@ -809,32 +862,42 @@ class HomeViewModel @Inject constructor(
                 var newFuelList = ArrayList<Fuel>()
                 for (item in list){
                     item.recordTimeInterval?.let {
-                        if (it > startDateTime && it < endDateTime){
+                        if (it >= startDateTime && it <= endDateTime){
                             newFuelList.add(item)
                         }
                     }
                 }
 
                 //油量变化数据
-                var newFuelChangedList = ArrayList<FuelChange>()
-                for (item in fuelChangedDataList){
-                    item.recordTimeInterval?.let {
-                        if (it > startDateTime && it < endDateTime){
-                            newFuelChangedList.add(item)
-                        }
-                    }
-                }
+//                var newFuelChangedList = ArrayList<FuelChange>()
+//                for (item in fuelChangedDataList){
+//                    item.recordTimeInterval?.let {
+//                        if (it >= startDateTime && it <= endDateTime){
+//                            newFuelChangedList.add(item)
+//                        }
+//                    }
+//                }
 
                 var refuelArray = ArrayList<FuelChange>()
                 var consumptionArray = ArrayList<FuelChange>()
 
-                for (item in newFuelChangedList){
+//                for (item in newFuelChangedList){
+//                    if (item.type == FuelChangedType.REFUEL.type){
+//                        refuelArray.add(item)
+//                    }else{
+//                        consumptionArray.add(item)
+//                    }
+//                }
+                //加油数据单独计算，经过过滤处理之后的加油数据
+                for (item in fuelChangedDataList){
                     if (item.type == FuelChangedType.REFUEL.type){
                         refuelArray.add(item)
-                    }else{
-                        if (item.fuelData!! > threshold){
-                            consumptionArray.add(item)
-                        }
+                    }
+                }
+                //油耗数据单独计算
+                for (item in beforeSortFuelChangedDataList){
+                    if (item.type == FuelChangedType.CONSUMPTION.type){
+                        consumptionArray.add(item)
                     }
                 }
 
@@ -865,6 +928,8 @@ class HomeViewModel @Inject constructor(
                 chartFuelArray.forEach{
                     if (it.totalCount > 0){
                         it.fuelData = it.fuelData/it.totalCount
+                        val fuelDataStringValue = String.format("%.1f", it.fuelData)
+                        it.fuelData = fuelDataStringValue.toDouble()
                     }
                 }
 

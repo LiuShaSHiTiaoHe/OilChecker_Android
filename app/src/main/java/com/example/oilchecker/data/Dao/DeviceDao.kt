@@ -15,6 +15,8 @@ interface DeviceDao {
     fun getItemIdentify(deviceid: String): String*/
     @Query("SELECT * FROM Device WHERE device_id = :id")
     fun getDevice(id: String): Device?
+    @Query("DELETE FROM DEVICE WHERE mac = :id")
+    fun deleteDevice(id: String)
 
     @Query("SELECT * FROM Device")
     fun getAllDevice(): List<Device>

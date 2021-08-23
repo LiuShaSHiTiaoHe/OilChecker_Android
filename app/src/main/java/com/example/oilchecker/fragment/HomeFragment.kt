@@ -109,6 +109,10 @@ class HomeFragment : Fragment(), View.OnClickListener{
 
 
         })
+        binding.ssRefuelrecord.setTextColor(requireContext().getColor(R.color.theme))
+        binding.ssTotalrefuel.setTextColor(requireContext().getColor(R.color.theme))
+        binding.ssUnusualrecordcount.setTextColor(requireContext().getColor(R.color.red))
+        binding.ssUnusualrecord.setTextColor(requireContext().getColor(R.color.red))
 
         viewModel.fuelChangedLiveData.observe(viewLifecycleOwner, Observer {
             Log.i(TAG, "fuelChangedLiveData: Size ${it.size}")
@@ -129,19 +133,18 @@ class HomeFragment : Fragment(), View.OnClickListener{
 
             binding.ssRefuelrecord.text = refuelArray.size.toString() + " " + requireContext().getString(R.string.home_refuel_times)
             binding.ssTotalrefuel.text =  String.format("%.1f", totalRefuel) + " L"
-            binding.ssRefuelrecord.setTextColor(requireContext().getColor(R.color.theme))
-            binding.ssTotalrefuel.setTextColor(requireContext().getColor(R.color.theme))
-
             binding.ssUnusualrecordcount.text = consumptionArray.size.toString() + " " + requireContext().getString(R.string.home_refuel_times)
             binding.ssUnusualrecord.text = String.format("%.1f", totalConsumption) + " L"
-            binding.ssUnusualrecordcount.setTextColor(requireContext().getColor(R.color.red))
-            binding.ssUnusualrecord.setTextColor(requireContext().getColor(R.color.red))
+
             listAdapter.apply {
+                listAdapter.addFuelChanges(it)
+                listAdapter.notifyDataSetChanged()
                 if (it.size > 0){
                     binding.settingInfoLlPhoto.isGone = false
                     binding.emptyTips.isGone = true
-                    listAdapter.addFuelChanges(it)
-                    listAdapter.notifyDataSetChanged()
+                }else{
+                    binding.settingInfoLlPhoto.isGone = true
+                    binding.emptyTips.isGone = false
                 }
             }
         })

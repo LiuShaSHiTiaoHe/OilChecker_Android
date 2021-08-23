@@ -76,6 +76,7 @@ class BleDeviceViewModel @Inject constructor(
         Log.i(TAG, "addNewDevice: ")
         viewModelScope.launch {
             async(Dispatchers.IO) {
+                database.deviceDao().deleteDevice(device.mac.toString())
                 database.deviceDao().insert(device)
                 UserPreference.setDevice(device.num.toString())
                 UserPreference.setMac(device.mac.toString())

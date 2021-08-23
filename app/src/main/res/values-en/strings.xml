@@ -36,6 +36,7 @@
     <string name="fuel_record">Fuel Record</string>
     <string name="consumption_record">Consumption Record</string>
     <string name="refuel_record">Refuel Record</string>
+    <string name="back">Back</string>
 
     <string name="fuelchanged_refuel">refuel</string>
     <string name="fuelchanged_unusual">unusual</string>

@@ -18,6 +18,7 @@ import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.DefaultValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import dagger.hilt.android.AndroidEntryPoint
 import khronos.*
@@ -123,7 +124,9 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             chart.visibility = View.VISIBLE
         }
         for (i in dataList.indices){
-            val value = dataList[i].fuelData.toFloat()
+//            val value = dataList[i].fuelData.toFloat()
+            val stringValue = String.format("%.1f", dataList[i].fuelData)
+            val value = stringValue.toFloat()
             val timeInterval = dataList[i].timeInterval.toFloat()
             if (value != null) {
                 lineEntry.add(BarEntry(timeInterval.toFloat(), value.toFloat()))
@@ -142,6 +145,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
 
         val linedataset = BarDataSet(lineEntry, requireContext().getString(R.string.fuel_record) + " (L)")
         linedataset.color = requireContext().getColor(R.color.red)
+        linedataset.valueFormatter = DefaultValueFormatter(1)
         val data = BarData(linedataset)
         chart.data = data
         chart.axisLeft.axisMinimum = 0.0F
@@ -166,7 +170,9 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             chart.visibility = View.VISIBLE
         }
         for (i in dataList.indices){
-            val value = dataList[i].fuelData
+//            val value = dataList[i].fuelData
+            val stringValue = String.format("%.1f", dataList[i].fuelData)
+            val value = stringValue.toFloat()
             val timeInterval = dataList[i].timeInterval
             if (value != null) {
                 lineEntry.add(BarEntry(timeInterval.toFloat(), value.toFloat()))
@@ -183,6 +189,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
         }
         val linedataset = BarDataSet(lineEntry, resources.getString(R.string.consumption_record) + " (L)")
         linedataset.color = requireContext().getColor(R.color.red)
+        linedataset.valueFormatter = DefaultValueFormatter(1)
         val data = BarData(linedataset)
         chart.data = data
         chart.axisLeft.axisMinimum = 0.0F
@@ -205,7 +212,8 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             chart.visibility = View.VISIBLE
         }
         for (i in dataList.indices){
-            val value = dataList[i].fuelData
+            val stringValue = String.format("%.1f", dataList[i].fuelData)
+            val value = stringValue.toFloat()
             val timeInterval = dataList[i].timeInterval
             if (value != null) {
                 lineEntry.add(BarEntry(timeInterval.toFloat(), value.toFloat()))
@@ -223,7 +231,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
         }
         val linedataset = BarDataSet(lineEntry, resources.getString(R.string.refuel_record) + " (L)")
         linedataset.color = requireContext().getColor(R.color.theme)
-
+        linedataset.valueFormatter = DefaultValueFormatter(1)
         val data = BarData(linedataset)
         chart.data = data
         chart.axisLeft.axisMinimum = 0.0F
