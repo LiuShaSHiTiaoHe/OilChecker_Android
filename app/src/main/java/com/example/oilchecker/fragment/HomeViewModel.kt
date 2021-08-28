@@ -93,6 +93,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun setupConnection(){
+        tipLiveData.postValue(ToastTips.B_Connecting)
         bleDevice.establishConnection(false)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
@@ -129,7 +130,6 @@ class HomeViewModel @Inject constructor(
             mConnection.setupNotification(Contants.NOTIFY_UUID, NotificationSetupMode.QUICK_SETUP)
                 .doOnNext{
                     getDeviceInfo()
-                   // getFuelInfo()
                     Log.i(TAG, "notification has been set up: ")}
                 .flatMap { it }
                 .observeOn(AndroidSchedulers.mainThread())
@@ -496,7 +496,7 @@ class HomeViewModel @Inject constructor(
                             var isTimeDataFlag = false
                             for (index in 0..((len - 2)/4 - 1)) {
                                 val fuelData = receiveFuelData.substring(cursor + index*4 , cursor+ 4*(index + 1))
-                                if (fuelData == "FDFF" || fuelData == "FEFF" || fuelData == "FBFF") {
+                                if (fuelData == "FDFF" || fuelData == "FEFF" || fuelData == "FBFF" || fuelData == "0000") {
                                     //过滤
                                 }else if (fuelData == "FCFF"){
                                     //增加的时间，后面的数据都有加上时间数据，每条数据的时间间隔为1分钟
@@ -550,7 +550,6 @@ class HomeViewModel @Inject constructor(
                                     bigToLittelEnd.clear()
                                     val realFuelData = (realHeightIntValue.toDouble()*length * width)/1000000
                                     Log.i(TAG, "processFuelData: height:-> $realHeightIntValue   fueldata real capavity -> $realFuelData")
-
                                     val timeInterval = date.toString("yyyy-MM-dd HH:mm:ss").toDateLong().toString()
                                     val timeFormatterString = date.toString("yyyy-MM-dd HH:mm:ss")
                                     newFuelList.add(mapOf("time" to timeFormatterString,"timeInterval" to timeInterval, "fuel" to realFuelData.toString(), "index" to indexOfFuelData.toString()))

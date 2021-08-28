@@ -213,6 +213,12 @@ class HomeFragment : Fragment(), View.OnClickListener{
     fun handleToast(){
         viewModel.tipLiveData.observe(viewLifecycleOwner, {
             when(it) {
+                ToastTips.B_Connecting -> {
+                    Toast.makeText(context, R.string.connecting, Toast.LENGTH_SHORT).show()
+                }
+                ToastTips.B_Connected -> {
+                    Toast.makeText(context, R.string.connecting, Toast.LENGTH_SHORT).show()
+                }
                 "request" -> {
                     Toast.makeText(context, R.string.request_successfully, Toast.LENGTH_SHORT).show()
                 }

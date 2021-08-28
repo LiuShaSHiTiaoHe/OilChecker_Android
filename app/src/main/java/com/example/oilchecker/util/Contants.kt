@@ -16,6 +16,7 @@ class Contants {
 
 class ToastTips{
     companion object{
+        val B_Connecting = "ble_connecting"
         val B_Connected = "ble_connected"
         val B_Disconnect = "ble_disconnect"
         val B_ConnectFailed = "ble_connect_failed"

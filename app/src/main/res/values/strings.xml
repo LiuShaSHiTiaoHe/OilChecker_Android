@@ -79,6 +79,8 @@
     <string name="set_dev_fail">设备参数设置失败</string>
     <string name="sync_fail">同步失败，请重试</string>
     <string name="disconnect">连接已断开</string>
+    <string name="connecting">正在连接设备</string>
+    <string name="connected">连接设备成功</string>
 
     <!-- Base -->
     <string name="no_data">暂无数据</string>

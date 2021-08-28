@@ -29,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.example.oilchecker.R
 import com.example.oilchecker.data.entity.Device
+import com.example.oilchecker.util.UserPreference
 import com.polidea.rxandroidble2.NotificationSetupMode
 import com.polidea.rxandroidble2.internal.RxBleLog
 import com.polidea.rxandroidble2.internal.logger.LoggerUtil
@@ -45,18 +46,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import net.akaish.ikey.hkb.IKeyHexKeyboard
 import java.lang.StringBuilder
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.concurrent.schedule
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [DeviceInfoFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 @AndroidEntryPoint
 class DeviceInfoFragment : Fragment(), View.OnClickListener{
     // TODO: Rename and change types of parameters
@@ -116,7 +109,6 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
 
     fun doConnect(){
-
         if (bleDevice.isConnected) {
             triggerDisconnect()
         } else {
@@ -142,10 +134,7 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
 
     private fun onConnectionReceived(connection: RxBleConnection) {
         Toast.makeText(context, getString(R.string.connect_successful), Toast.LENGTH_SHORT).show()
-
-        Log.i(TAG, "onConnectionReceived: --->")
         if(bleDevice.isConnected) {
-            Log.i(TAG, "doConnect: isConnected-->")
             mConnection.setupNotification(Contants.NOTIFY_UUID,NotificationSetupMode.QUICK_SETUP)
                 .doOnNext{
                    // connection.writeCharacteristic(Contants.WRITE_UUID, inputBytes)
@@ -164,6 +153,15 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         }
     }
 
+    private fun onWriteSuccess(){
+        Log.i(TAG, "onWriteSuccess: ")
+    }
+
+    private fun onWriteFailure(throwable: Throwable){
+        Log.i(TAG, "onWriteFailure: ${throwable.message}")
+        viewModel.recordMalfuntion(requireContext().getString(R.string.sync_fail))
+    }
+
     private fun onNotificationReceived(bytes: ByteArray) {
         Log.i(TAG, "---onNext--->>>>$bytes --->${bytes.toHex()}")
         val result = bytes.toHex()
@@ -180,6 +178,9 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
                 deviceFragmentBinding.etHeight.text = Editable.Factory.getInstance().newEditable(height)
                 viewModel.getDeviceById(identify)
                 Toast.makeText(context, R.string.request_successfully, Toast.LENGTH_SHORT).show()
+                Timer().schedule(1000){
+                    setDeviceTime()
+                }
             }else if (result.substring(12,14) == "84"){
                 if (result.substring(14,16) == "00"){
                     Log.i(TAG, "onNotificationReceived: set successful")
@@ -373,12 +374,60 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
         }
     }
 
-    private fun onWriteSuccess(){
-        Log.i(TAG, "onWriteSuccess: ")
+    //时间设置
+    private fun setDeviceTime() {
+        var dataLen = 6.toString(16)   //数据长度 1字节
+        val len = (256 - 6).toString(16) //数据长补数 1字节
+        if (dataLen.length == 1){
+            dataLen = "0$dataLen"
+        }
+        val today = LocalDateTime.now()
+        val myDateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+        var timestring = myDateTimeFormatter.format(today)
+        val timeNow = timestring.substring(2,14)
+        var timeDataString = ""
+        for (i in 0 until timeNow.length/2){
+            var sub = timeNow.substring(i*2, i*2+2).toInt().toString(16)
+            if (sub.length == 1){
+                sub = "0$sub"
+            }
+            timeDataString += sub
+        }
+        val identify = UserPreference.getIdentify()
+        val data = dataLen + len + identify + "01" + "87" + timeDataString
+        var sum = 0
+        for (i in 0 until data.length/2){
+            sum = sum xor data.substring(i*2,i*2+2).toInt(16)
+        }
+        var sumLen = sum.toString(16)
+        if (sumLen.length == 1){
+            sumLen = "0$sumLen"
+        }
+        var result = StringBuilder()
+        result.append("02")
+        result.append(dataLen)  //数据长度 1字节
+        result.append(len)  //数据长补数 1字节
+        result.append(identify?.substring(0,2)) //identify 00
+        result.append(identify?.substring(2,4))  //identify 00
+        result.append("01")
+        result.append("87")
+        result.append(timeDataString)
+        result.append(sumLen)
+        result.append("03")
+
+        val write = result.toString()
+        Log.i(TAG, "setDeviceTime: $write")
+
+        val inputBytes: ByteArray = write.toByteArray()
+        if(bleDevice.isConnected) {
+            mConnection.writeCharacteristic(Contants.WRITE_UUID,inputBytes.hex2byte())
+                .map { Log.i(TAG, "setDeviceTime: write --> ${it.toHex()}") }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ onWriteSuccess() }, { onWriteFailure(it) })
+                .let { connectionDisposable.add(it) }
+        }else{
+            Log.i(TAG, "setDeviceTime: ble is disconnected")
+        }
     }
 
-    private fun onWriteFailure(throwable: Throwable){
-        Log.i(TAG, "onWriteFailure: ${throwable.message}")
-        viewModel.recordMalfuntion(requireContext().getString(R.string.sync_fail))
-    }
 }

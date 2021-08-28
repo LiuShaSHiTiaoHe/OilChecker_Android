@@ -80,7 +80,9 @@
     <string name="set_dev_successfully">set device info successfully, Please restart the device!</string>
     <string name="set_dev_fail">Failed to set device info</string>
     <string name="sync_fail">Synchronization failed, please try again</string>
-    <string name="disconnect">Device is disconnected</string>
+    <string name="disconnect">Device disconnected</string>
+    <string name="connecting">Connecting device</string>
+    <string name="connected">Device connected</string>
 
     <!-- Base -->
     <string name="no_data">No records</string>
