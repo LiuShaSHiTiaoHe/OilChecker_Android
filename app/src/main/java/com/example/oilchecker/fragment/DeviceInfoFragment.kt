@@ -393,7 +393,7 @@ class DeviceInfoFragment : Fragment(), View.OnClickListener{
             }
             timeDataString += sub
         }
-        val identify = UserPreference.getIdentify()
+        val identify = "0000"
         val data = dataLen + len + identify + "01" + "87" + timeDataString
         var sum = 0
         for (i in 0 until data.length/2){

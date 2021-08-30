@@ -19,7 +19,12 @@ class UserPreference {
             SpUtils.put("mac",mac)
         }
         fun getIdentify(): String? {
-            return SpUtils.getString("identify")
+            val value = SpUtils.getString("identify")
+            return if (value!!.isEmpty()){
+                "0000"
+            }else{
+                value!!
+            }
         }
         fun setIdentify(identify: String) {
             SpUtils.put("identify",identify)
@@ -40,10 +45,10 @@ class UserPreference {
 
         fun getThreshold():Double{
             val value = SpUtils.getDouble("threshold")
-            if (value == 0.0){
-                return  5.00
+            return if (value == 0.0){
+                5.00
             }else{
-                return  value!!
+                value!!
             }
         }
 
@@ -54,10 +59,10 @@ class UserPreference {
 
         fun getSegmentIndex(): Int{
             val value = SpUtils.getInt("segmentIndex")
-            if (value == -1){
-                return  2
+            return if (value == -1){
+                2
             }else{
-                return  value!!
+                value!!
             }
         }
 
@@ -67,10 +72,10 @@ class UserPreference {
 
         fun getDateOffset(): Int{
             val value = SpUtils.getInt("DateOffset")
-            if (value == -1){
-                return  0
+            return if (value == -1){
+                0
             }else{
-                return  value!!
+                value!!
             }
         }
     }

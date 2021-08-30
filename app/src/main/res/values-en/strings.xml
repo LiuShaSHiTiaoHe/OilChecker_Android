@@ -86,7 +86,13 @@
 
     <!-- Base -->
     <string name="no_data">No records</string>
-
+    <string name="Monday">Mon.</string>
+    <string name="Tuesday">Tue.</string>
+    <string name="Wednesday">Wed.</string>
+    <string name="Thursday">Thur.</string>
+    <string name="Friday">Fri.</string>
+    <string name="Saturday">Sat.</string>
+    <string name="Sunday">Sun.</string>
 
 
 

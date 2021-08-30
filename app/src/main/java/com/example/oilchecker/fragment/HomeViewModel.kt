@@ -3,6 +3,7 @@ package com.example.oilchecker.fragment
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH
 import android.content.Context
 import android.content.DialogInterface
 import android.icu.util.LocaleData
@@ -35,6 +36,7 @@ import java.lang.StringBuilder
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -95,6 +97,7 @@ class HomeViewModel @Inject constructor(
     private fun setupConnection(){
         tipLiveData.postValue(ToastTips.B_Connecting)
         bleDevice.establishConnection(false)
+            .timeout(10, TimeUnit.SECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 onConnectionReceived(it)
@@ -124,6 +127,7 @@ class HomeViewModel @Inject constructor(
 
     private fun onConnectionReceived(connection: RxBleConnection) {
         mConnection = connection
+        mConnection.requestConnectionPriority(CONNECTION_PRIORITY_HIGH, 1, TimeUnit.MILLISECONDS)
         tipLiveData.postValue(ToastTips.B_Connected)
         if(bleDevice.isConnected) {
             Log.i(TAG, "doConnect: isConnected-->")
@@ -481,6 +485,7 @@ class HomeViewModel @Inject constructor(
                     var indexOfFuelData = 0
                     var startOfGetTime = 0
                     var deviceTimeString = ""
+                    var fuelDataAfterTime = false//时间戳后面紧接的一个数据，时间按照时间戳来，不做+1min处理
 
                     while (isContinue) {
                         val len = receiveFuelData.substring(cursor + 2, cursor + 4).toInt(16) * 2
@@ -501,6 +506,7 @@ class HomeViewModel @Inject constructor(
                                 }else if (fuelData == "FCFF"){
                                     //增加的时间，后面的数据都有加上时间数据，每条数据的时间间隔为1分钟
                                     isTimeDataFlag = true
+                                    fuelDataAfterTime = true
                                     deviceTimeString = ""
                                     startOfGetTime = 0
                                 } else{
@@ -542,7 +548,14 @@ class HomeViewModel @Inject constructor(
                                     if (deviceTimeString.length < 14){
                                         continue
                                     }
-                                    val date = deviceTimeString.toDate("yyyyMMddHHmmss") + 1.minutes
+                                    var date: Date?
+                                    if (fuelDataAfterTime){
+                                        fuelDataAfterTime = false
+                                        date = deviceTimeString.toDate("yyyyMMddHHmmss")
+                                    }else{
+                                        date = deviceTimeString.toDate("yyyyMMddHHmmss") + 1.minutes
+                                    }
+//                                    val date = deviceTimeString.toDate("yyyyMMddHHmmss") + 1.minutes
                                     deviceTimeString = date.toString("yyyyMMddHHmmss")
                                     bigToLittelEnd.append(fuelData.substring(2,4))
                                     bigToLittelEnd.append(fuelData.substring(0,2))
@@ -833,9 +846,13 @@ class HomeViewModel @Inject constructor(
                         val startOfDay = startDateTime.toDateStr().toDate("yyyy-MM-dd HH:mm:ss").beginningOfDay
                         for (index in 0 until 7){
                             val time = startOfDay + index.days
-                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0, 0))
-                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0, 0))
-                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0, 0))
+//                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0, 0))
+//                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0, 0))
+//                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd HH:mm:ss").toDateLong().getDateDay().toLong(),0.0, 0))
+
+                            chartFuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd").toDateLong("yyyy-MM-dd"),0.0, 0))
+                            chartRefuelArray.add(ChartDateModel(time.toString("yyyy-MM-dd").toDateLong("yyyy-MM-dd"),0.0, 0))
+                            chartconsumptionArray.add(ChartDateModel(time.toString("yyyy-MM-dd").toDateLong("yyyy-MM-dd"),0.0, 0))
                         }
                     }
                     2 -> {
@@ -867,26 +884,10 @@ class HomeViewModel @Inject constructor(
                     }
                 }
 
-                //油量变化数据
-//                var newFuelChangedList = ArrayList<FuelChange>()
-//                for (item in fuelChangedDataList){
-//                    item.recordTimeInterval?.let {
-//                        if (it >= startDateTime && it <= endDateTime){
-//                            newFuelChangedList.add(item)
-//                        }
-//                    }
-//                }
 
                 var refuelArray = ArrayList<FuelChange>()
                 var consumptionArray = ArrayList<FuelChange>()
 
-//                for (item in newFuelChangedList){
-//                    if (item.type == FuelChangedType.REFUEL.type){
-//                        refuelArray.add(item)
-//                    }else{
-//                        consumptionArray.add(item)
-//                    }
-//                }
                 //加油数据单独计算，经过过滤处理之后的加油数据
                 for (item in fuelChangedDataList){
                     if (item.type == FuelChangedType.REFUEL.type){
@@ -907,7 +908,8 @@ class HomeViewModel @Inject constructor(
                             current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateHour().toLong() }
                         }
                         1 -> {
-                            current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+//                            current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                            current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.toDateStr("yyyy-MM-dd").toDateLong("yyyy-MM-dd") }
                         }
                         2 -> {
                             current =  chartFuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
@@ -939,7 +941,8 @@ class HomeViewModel @Inject constructor(
                             current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateHour().toLong() }
                         }
                         1 -> {
-                            current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+//                            current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                            current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.toDateStr("yyyy-MM-dd").toDateLong("yyyy-MM-dd") }
                         }
                         2 -> {
                             current =  chartRefuelArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
@@ -963,7 +966,8 @@ class HomeViewModel @Inject constructor(
                             current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateHour().toLong() }
                         }
                         1 -> {
-                            current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+//                            current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
+                            current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.toDateStr("yyyy-MM-dd").toDateLong("yyyy-MM-dd") }
                         }
                         2 -> {
                             current =  chartconsumptionArray.find { it.timeInterval == item.recordTimeInterval!!.getDateDay().toLong() }
@@ -986,7 +990,16 @@ class HomeViewModel @Inject constructor(
                 Log.i("chartData", "$chartFuelArray")
                 Log.i("chartData", "$chartRefuelArray")
                 Log.i("chartData", "$chartconsumptionArray")
-
+                if (segmentIndex == 1){
+                    chartFuelArray.sortBy { it.timeInterval }
+                    chartRefuelArray.sortBy { it.timeInterval }
+                    chartconsumptionArray.sortBy { it.timeInterval }
+                    for (index in 0 until 7){
+                        chartFuelArray[index].timeInterval = index.toLong()
+                        chartRefuelArray[index].timeInterval = index.toLong()
+                        chartconsumptionArray[index].timeInterval = index.toLong()
+                    }
+                }
                 fuelChartLiveData.postValue(chartFuelArray)
                 refuelChartLiveData.postValue(chartRefuelArray)
                 consumptionChartLiveData.postValue(chartconsumptionArray)
