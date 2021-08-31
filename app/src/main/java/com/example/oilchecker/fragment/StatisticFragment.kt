@@ -37,6 +37,24 @@ class StatisticFragment : Fragment(), View.OnClickListener{
     private lateinit var homeViewModel: HomeViewModel
     private var type: String = ""
     private var currentDevice: String = ""
+    private val chartValueFormatter = object :ValueFormatter(){
+        override fun getAxisLabel(value: Float, axis: AxisBase?): String {
+            if (type == "1"){
+                when (value){
+                    0f -> return requireContext().getString(R.string.Sunday)
+                    1f -> return requireContext().getString(R.string.Monday)
+                    2f -> return requireContext().getString(R.string.Tuesday)
+                    3f -> return requireContext().getString(R.string.Wednesday)
+                    4f -> return requireContext().getString(R.string.Thursday)
+                    5f -> return requireContext().getString(R.string.Friday)
+                    6f -> return requireContext().getString(R.string.Saturday)
+                }
+                return value.toLong().toDateStr("dd")
+            }else{
+                return value.toUInt().toString()
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -140,24 +158,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             }else{
                 setLabelCount(dataList.size, false)
             }
-            this.valueFormatter = object :ValueFormatter(){
-                override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-                    if (type == "1"){
-                        when (value){
-                            0f -> return requireContext().getString(R.string.Sunday)
-                            1f -> return requireContext().getString(R.string.Monday)
-                            2f -> return requireContext().getString(R.string.Tuesday)
-                            3f -> return requireContext().getString(R.string.Wednesday)
-                            4f -> return requireContext().getString(R.string.Thursday)
-                            5f -> return requireContext().getString(R.string.Friday)
-                            6f -> return requireContext().getString(R.string.Saturday)
-                        }
-                        return value.toLong().toDateStr("dd")
-                    }else{
-                        return value.toUInt().toString()
-                    }
-                }
-            }
+            this.valueFormatter = chartValueFormatter
 
         }
 
@@ -203,24 +204,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             }else{
                 setLabelCount(dataList.size, false)
             }
-            this.valueFormatter = object :ValueFormatter(){
-                override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-                    if (type == "1"){
-                        when (value){
-                            0f -> return requireContext().getString(R.string.Sunday)
-                            1f -> return requireContext().getString(R.string.Monday)
-                            2f -> return requireContext().getString(R.string.Tuesday)
-                            3f -> return requireContext().getString(R.string.Wednesday)
-                            4f -> return requireContext().getString(R.string.Thursday)
-                            5f -> return requireContext().getString(R.string.Friday)
-                            6f -> return requireContext().getString(R.string.Saturday)
-                        }
-                        return value.toLong().toDateStr("dd")
-                    }else{
-                        return value.toUInt().toString()
-                    }
-                }
-            }
+            this.valueFormatter = chartValueFormatter
 
         }
         val linedataset = BarDataSet(lineEntry, resources.getString(R.string.consumption_record) + " (L)")
@@ -264,24 +248,7 @@ class StatisticFragment : Fragment(), View.OnClickListener{
             }else{
                 setLabelCount(dataList.size, false)
             }
-            this.valueFormatter = object :ValueFormatter(){
-                override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-                    if (type == "1"){
-                        when (value){
-                            0f -> return requireContext().getString(R.string.Sunday)
-                            1f -> return requireContext().getString(R.string.Monday)
-                            2f -> return requireContext().getString(R.string.Tuesday)
-                            3f -> return requireContext().getString(R.string.Wednesday)
-                            4f -> return requireContext().getString(R.string.Thursday)
-                            5f -> return requireContext().getString(R.string.Friday)
-                            6f -> return requireContext().getString(R.string.Saturday)
-                        }
-                        return value.toLong().toDateStr("dd")
-                    }else{
-                        return value.toUInt().toString()
-                    }
-                }
-            }
+            this.valueFormatter = chartValueFormatter
         }
         val linedataset = BarDataSet(lineEntry, resources.getString(R.string.refuel_record) + " (L)")
         linedataset.color = requireContext().getColor(R.color.theme)
